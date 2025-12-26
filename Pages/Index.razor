@@ -1,0 +1,97 @@
+@page "/"
+@inject RestaurantSystemFacade Facade
+@inject RankingService RankingService
+@inject RankingObserver Observer
+
+<PageTitle>Home - Boolk</PageTitle>
+
+<h1>Restaurant Ranking System</h1>
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <h2>Top Restaurants</h2>
+            
+            <div class="mb-3">
+                <label for="strategySelect" class="form-label">Select Ranking Strategy:</label>
+                <select @bind="selectedStrategy" @bind:event="onchange" class="form-select" id="strategySelect">
+                    <option value="bestvalue">Best Value</option>
+                    <option value="cheapest">Cheapest</option>
+                    <option value="mostfilling">Most Filling</option>
+                </select>
+            </div>
+
+            <button class="btn btn-primary mb-3" @onclick="LoadRankedRestaurants">Load Rankings</button>
+
+            @if (isLoading)
+            {
+                <p>Loading...</p>
+            }
+            else if (rankedRestaurants != null && rankedRestaurants.Any())
+            {
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Rank</th>
+                            <th>Name</th>
+                            <th>City</th>
+                            <th>Type</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var (restaurant, index) in rankedRestaurants.Select((r, i) => (r, i + 1)))
+                        {
+                            <tr>
+                                <td>@index</td>
+                                <td>@restaurant.Name</td>
+                                <td>@restaurant.City</td>
+                                <td>@restaurant.GetType().Name</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else if (rankedRestaurants != null && !rankedRestaurants.Any())
+            {
+                <p>No restaurants found. Please add some restaurants and reviews first.</p>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<RestaurantBase>? rankedRestaurants;
+    private bool isLoading = false;
+    private string selectedStrategy = "bestvalue";
+
+    protected override void OnInitialized()
+    {
+        RankingService.Attach(Observer);
+    }
+
+    private async Task LoadRankedRestaurants()
+    {
+        isLoading = true;
+        try
+        {
+            IRankingStrategy strategy = selectedStrategy switch
+            {
+                "bestvalue" => new BestValueStrategy(),
+                "cheapest" => new CheapestStrategy(),
+                "mostfilling" => new MostFillingStrategy(),
+                _ => new BestValueStrategy()
+            };
+
+            rankedRestaurants = await Facade.GetRankedRestaurants(strategy);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading restaurants: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+}
+

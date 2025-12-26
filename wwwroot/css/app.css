@@ -1,0 +1,84 @@
+html, body {
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+
+h1:focus {
+    outline: none;
+}
+
+a, .btn-link {
+    color: #0071c1;
+}
+
+.btn-primary {
+    color: #fff;
+    background-color: #1b6ec2;
+    border-color: #1861ac;
+}
+
+.content {
+    padding-top: 1.1rem;
+}
+
+.valid.modified:not([type=checkbox]) {
+    outline: 1px solid #26b050;
+}
+
+.invalid {
+    outline: 1px solid red;
+}
+
+.validation-message {
+    color: red;
+}
+
+#blazor-error-ui {
+    background: lightyellow;
+    bottom: 0;
+    box-shadow: 0 -1px 2px rgba(0, 0, 0, 0.2);
+    display: none;
+    left: 0;
+    padding: 0.6rem 1.25rem 0.7rem 1.25rem;
+    position: fixed;
+    width: 100%;
+    z-index: 1000;
+}
+
+#blazor-error-ui .dismiss {
+    cursor: pointer;
+    position: absolute;
+    right: 0.75rem;
+    top: 0.5rem;
+}
+
+.blazor-error-boundary {
+    background: url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTYiIGhlaWdodD0iNDkiIHZpZXdCb3g9IjAgMCA1NiA0OSIgdmlld0JveD0iMCAwIDU2IDQ5IiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8ZyBjbGlwLXBhdGg9InVybCgjY2xpcDApIj4KPHBhdGggZD0iTTEzLjUgNi41TDIwLjUgMTIuNUwyNy41IDYuNUgxMy41WiIgZmlsbD0iI0Y0NDQ0NCIvPgo8cGF0aCBkPSJNMjguNSA2LjVMMjEuNSAxMi41TDI4LjUgMTguNVY2LjVaIiBmaWxsPSIjRkZCRjAwIi8+CjxwYXRoIGQ9Ik0yNy41IDYuNUwyMC41IDEyLjVMMjcuNSAxOC41VjYuNVoiIGZpbGw9IiNGRkQ3MDAiLz4KPHBhdGggZD0iTTIxLjUgMTIuNUwxMy41IDYuNUwyMC41IDEyLjVIMjEuNVoiIGZpbGw9IiNGRkE2MDAiLz4KPHBhdGggZD0iTTIxLjUgMTIuNUwyOC41IDYuNUwyMS41IDEyLjVIMjEuNVoiIGZpbGw9IiNGRkQ3MDAiLz4KPC9nPgo8L3N2Zz4K) no-repeat 1rem/1.8rem, #b32121;
+    padding: 1rem 1rem 1rem 3.7rem;
+    color: white;
+}
+
+.blazor-error-boundary::after {
+    content: "An error has occurred."
+}
+
+.table {
+    width: 100%;
+    margin-bottom: 1rem;
+    color: #212529;
+}
+
+.table-striped tbody tr:nth-of-type(odd) {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.table thead th {
+    vertical-align: bottom;
+    border-bottom: 2px solid #dee2e6;
+}
+
+.table td, .table th {
+    padding: 0.75rem;
+    vertical-align: top;
+    border-top: 1px solid #dee2e6;
+}
+
