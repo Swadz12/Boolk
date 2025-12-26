@@ -1,0 +1,226 @@
+@page "/profile"
+@inject UserService UserService
+@inject IUserRepository UserRepository
+
+<PageTitle>Profile - Boolk</PageTitle>
+
+<div class="profile-page">
+    <header class="page-header">
+        <div class="header-content">
+            <h1>👤 User Profile</h1>
+            <p>Manage your account and preferences</p>
+        </div>
+    </header>
+
+    <div class="profile-content">
+        <div class="forms-grid">
+            <!-- Login Card -->
+            <div class="auth-card">
+                <div class="card-icon login-icon">🔐</div>
+                <h2>Welcome back</h2>
+                <p class="card-desc">Sign in to your account</p>
+                
+                <EditForm Model="@loginModel" OnValidSubmit="@HandleLogin" class="auth-form">
+                    <DataAnnotationsValidator />
+                    <div class="form-group">
+                        <label>Email</label>
+                        <InputText @bind-Value="loginModel.Email" class="form-input" type="email" placeholder="you@example.com" />
+                    </div>
+                    <div class="form-group">
+                        <label>Password</label>
+                        <InputText @bind-Value="loginModel.Password" class="form-input" type="password" placeholder="••••••••" />
+                    </div>
+                    <button type="submit" class="btn-primary" disabled="@isLoggingIn">
+                        @if (isLoggingIn)
+                        {
+                            <span class="spinner"></span>
+                        }
+                        Sign In
+                    </button>
+                </EditForm>
+
+                @if (!string.IsNullOrEmpty(loginMessage))
+                {
+                    <div class="message @(loginMessage.Contains("Error") || loginMessage.Contains("not found") ? "error" : "success")">
+                        @loginMessage
+                    </div>
+                }
+            </div>
+
+            <!-- Register Card -->
+            <div class="auth-card">
+                <div class="card-icon register-icon">✨</div>
+                <h2>Create account</h2>
+                <p class="card-desc">Join the Boolk community</p>
+                
+                <EditForm Model="@registerModel" OnValidSubmit="@HandleRegister" class="auth-form">
+                    <DataAnnotationsValidator />
+                    <div class="form-group">
+                        <label>Email</label>
+                        <InputText @bind-Value="registerModel.Email" class="form-input" type="email" placeholder="you@example.com" />
+                    </div>
+                    <div class="form-group">
+                        <label>Password</label>
+                        <InputText @bind-Value="registerModel.Password" class="form-input" type="password" placeholder="Choose a strong password" />
+                        <span class="hint">🔒 Securely hashed with BCrypt</span>
+                    </div>
+                    <button type="submit" class="btn-secondary" disabled="@isRegistering">
+                        @if (isRegistering)
+                        {
+                            <span class="spinner"></span>
+                        }
+                        Create Account
+                    </button>
+                </EditForm>
+
+                @if (!string.IsNullOrEmpty(registerMessage))
+                {
+                    <div class="message @(registerMessage.Contains("Error") ? "error" : "success")">
+                        @registerMessage
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Current User -->
+        @if (currentUser != null)
+        {
+            <div class="current-user-card">
+                <div class="user-avatar">👤</div>
+                <div class="user-info">
+                    <h3>@currentUser.Email</h3>
+                    <span class="user-id">ID: @currentUser.Id.ToString().Substring(0, 8)...</span>
+                </div>
+                <div class="user-badge">Logged In</div>
+            </div>
+        }
+
+        <!-- All Users -->
+        @if (allUsers != null && allUsers.Any())
+        {
+            <div class="users-section">
+                <div class="section-header">
+                    <h2>👥 Community Members</h2>
+                    <button class="refresh-btn" @onclick="LoadUsers">🔄 Refresh</button>
+                </div>
+                <div class="users-grid">
+                    @foreach (var user in allUsers)
+                    {
+                        <div class="user-card">
+                            <div class="user-card-avatar">👤</div>
+                            <div class="user-card-info">
+                                <span class="user-email">@user.Email</span>
+                                <span class="user-meta">@user.Id.ToString().Substring(0, 8)...</span>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    private LoginModel loginModel = new();
+    private RegisterModel registerModel = new();
+    private string loginMessage = "";
+    private string registerMessage = "";
+    private bool isLoggingIn = false;
+    private bool isRegistering = false;
+    private User? currentUser;
+    private List<User>? allUsers;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadUsers();
+    }
+
+    private async Task LoadUsers()
+    {
+        try
+        {
+            allUsers = (await UserRepository.GetAllAsync()).ToList();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading users: {ex.Message}");
+        }
+    }
+
+    private async Task HandleLogin()
+    {
+        isLoggingIn = true;
+        loginMessage = "";
+        StateHasChanged();
+
+        try
+        {
+            await Task.Delay(500);
+            
+            var user = await UserRepository.GetByEmailAsync(loginModel.Email);
+            if (user != null)
+            {
+                currentUser = user;
+                loginMessage = "✅ Login successful!";
+                
+                await Task.Delay(3000);
+                loginMessage = "";
+            }
+            else
+            {
+                loginMessage = "❌ User not found";
+            }
+        }
+        catch (Exception ex)
+        {
+            loginMessage = $"❌ Error: {ex.Message}";
+        }
+        finally
+        {
+            isLoggingIn = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task HandleRegister()
+    {
+        isRegistering = true;
+        registerMessage = "";
+        StateHasChanged();
+
+        try
+        {
+            var user = await UserService.RegisterUser(registerModel.Email, registerModel.Password);
+            currentUser = user;
+            registerMessage = $"✅ Welcome, {user.Email}!";
+            
+            await LoadUsers();
+            
+            await Task.Delay(3000);
+            registerMessage = "";
+            registerModel = new();
+        }
+        catch (Exception ex)
+        {
+            registerMessage = $"❌ Error: {ex.Message}";
+        }
+        finally
+        {
+            isRegistering = false;
+            StateHasChanged();
+        }
+    }
+
+    private class LoginModel
+    {
+        public string Email { get; set; } = "";
+        public string Password { get; set; } = "";
+    }
+
+    private class RegisterModel
+    {
+        public string Email { get; set; } = "";
+        public string Password { get; set; } = "";
+    }
+}
+

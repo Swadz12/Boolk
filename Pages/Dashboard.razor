@@ -1,0 +1,273 @@
+@page "/dashboard"
+@inject IRestaurantRepository RestaurantRepository
+@inject IReviewRepository ReviewRepository
+@inject RestaurantSystemFacade Facade
+@using Boolk.Repositories.Interfaces
+
+<PageTitle>Dashboard - Boolk</PageTitle>
+
+<div class="hero" style="padding: 2rem;">
+    <div class="hero-content">
+        <h1 style="font-size: 2.5rem;">📊 Dashboard</h1>
+        <p>Overview of your restaurant ranking system</p>
+    </div>
+</div>
+
+<div class="container mt-5">
+    <!-- Stats Grid -->
+    <div class="grid grid-4 mb-5">
+        <div class="stats-card fade-in">
+            <div class="stats-number">@totalRestaurants</div>
+            <div class="stats-label">Total Restaurants</div>
+        </div>
+        <div class="stats-card fade-in" style="animation-delay: 0.1s">
+            <div class="stats-number">@totalReviews</div>
+            <div class="stats-label">Total Reviews</div>
+        </div>
+        <div class="stats-card fade-in" style="animation-delay: 0.2s">
+            <div class="stats-number">€@averagePrice.ToString("F2")</div>
+            <div class="stats-label">Avg. Price</div>
+        </div>
+        <div class="stats-card fade-in" style="animation-delay: 0.3s">
+            <div class="stats-number">@averageSatiety.ToString("F1")</div>
+            <div class="stats-label">Avg. Satiety</div>
+        </div>
+    </div>
+
+    <div class="grid grid-2 mb-5">
+        <!-- Restaurant Types Distribution -->
+        <div class="card fade-in">
+            <div class="card-header">
+                <h2 class="card-title">🍴 Restaurant Types</h2>
+            </div>
+            <div style="padding: 1rem;">
+                <div style="margin-bottom: 1.5rem;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                        <span>🍟 Fast Food</span>
+                        <span style="font-weight: 600;">@fastFoodCount</span>
+                    </div>
+                    <div style="background: var(--glass-bg); border-radius: 10px; height: 12px; overflow: hidden;">
+                        <div style="background: var(--primary-gradient); height: 100%; width: @(GetPercentage(fastFoodCount, totalRestaurants))%; transition: width 0.5s ease;"></div>
+                    </div>
+                </div>
+                <div style="margin-bottom: 1.5rem;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                        <span>🍺 Student Bar</span>
+                        <span style="font-weight: 600;">@studentBarCount</span>
+                    </div>
+                    <div style="background: var(--glass-bg); border-radius: 10px; height: 12px; overflow: hidden;">
+                        <div style="background: var(--secondary-gradient); height: 100%; width: @(GetPercentage(studentBarCount, totalRestaurants))%; transition: width 0.5s ease;"></div>
+                    </div>
+                </div>
+                <div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                        <span>⭐ Premium</span>
+                        <span style="font-weight: 600;">@premiumCount</span>
+                    </div>
+                    <div style="background: var(--glass-bg); border-radius: 10px; height: 12px; overflow: hidden;">
+                        <div style="background: var(--success-gradient); height: 100%; width: @(GetPercentage(premiumCount, totalRestaurants))%; transition: width 0.5s ease;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Top Restaurants by Reviews -->
+        <div class="card fade-in" style="animation-delay: 0.1s">
+            <div class="card-header">
+                <h2 class="card-title">🏆 Most Reviewed</h2>
+            </div>
+            <div style="padding: 1rem;">
+                @if (topReviewedRestaurants != null && topReviewedRestaurants.Any())
+                {
+                    @foreach (var (restaurant, index) in topReviewedRestaurants.Take(5).Select((r, i) => (r, i + 1)))
+                    {
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; margin-bottom: 0.5rem; background: var(--glass-bg); border-radius: 12px; border: 1px solid var(--glass-border);">
+                            <div>
+                                <div style="font-weight: 600; margin-bottom: 0.25rem;">@restaurant.Name</div>
+                                <small style="color: var(--text-secondary);">📍 @restaurant.City</small>
+                            </div>
+                            <div style="text-align: right;">
+                                <div style="font-size: 1.5rem; font-weight: 700; background: var(--primary-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                                    @GetReviewCount(restaurant.Id)
+                                </div>
+                                <small style="color: var(--text-secondary);">reviews</small>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <p style="color: var(--text-secondary); text-align: center; padding: 2rem;">
+                        No reviews yet
+                    </p>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Rankings -->
+    <div class="card fade-in" style="animation-delay: 0.2s">
+        <div class="card-header">
+            <h2 class="card-title">⚡ Quick Rankings</h2>
+        </div>
+        <div style="padding: 1rem;">
+            <div style="display: flex; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap;">
+                <button class="btn btn-primary" @onclick="@(() => LoadQuickRanking("bestvalue"))" disabled="@isLoading">
+                    🏆 Best Value
+                </button>
+                <button class="btn btn-secondary" @onclick="@(() => LoadQuickRanking("cheapest"))" disabled="@isLoading">
+                    💰 Cheapest
+                </button>
+                <button class="btn btn-secondary" @onclick="@(() => LoadQuickRanking("mostfilling"))" disabled="@isLoading">
+                    🍔 Most Filling
+                </button>
+            </div>
+
+            @if (isLoading)
+            {
+                <div class="spinner"></div>
+            }
+            else if (quickRankings != null && quickRankings.Any())
+            {
+                <div class="grid grid-3" style="margin-top: 1rem;">
+                    @foreach (var (restaurant, index) in quickRankings.Take(6).Select((r, i) => (r, i + 1)))
+                    {
+                        <a href="/restaurant/@restaurant.Id" style="text-decoration: none; color: inherit;">
+                            <div class="restaurant-card fade-in" style="@($"animation-delay: {index * 0.05}s")">
+                                <div class="rank-badge @GetRankClass(index)">
+                                    @index
+                                </div>
+                                <h3 class="restaurant-name">@restaurant.Name</h3>
+                                <p class="restaurant-city">📍 @restaurant.City</p>
+                                <span class="restaurant-type">@GetRestaurantType(restaurant)</span>
+                            </div>
+                        </a>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    private int totalRestaurants = 0;
+    private int totalReviews = 0;
+    private decimal averagePrice = 0;
+    private decimal averageSatiety = 0;
+    private int fastFoodCount = 0;
+    private int studentBarCount = 0;
+    private int premiumCount = 0;
+    private List<RestaurantBase>? topReviewedRestaurants;
+    private List<RestaurantBase>? quickRankings;
+    private bool isLoading = false;
+    private List<Review>? allReviews;
+    private List<RestaurantBase>? allRestaurants;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDashboardData();
+    }
+
+    private async Task LoadDashboardData()
+    {
+        try
+        {
+            allRestaurants = (await RestaurantRepository.GetAllAsync()).ToList();
+            allReviews = (await ReviewRepository.GetAllAsync()).ToList();
+
+            totalRestaurants = allRestaurants.Count;
+            totalReviews = allReviews.Count;
+
+            if (allReviews.Any())
+            {
+                averagePrice = allReviews.Average(r => r.Price);
+                averageSatiety = allReviews.Average(r => (decimal)r.SatietyLevel);
+            }
+
+            fastFoodCount = allRestaurants.Count(r => r is FastFoodRestaurant);
+            studentBarCount = allRestaurants.Count(r => r is StudentBar);
+            premiumCount = allRestaurants.Count(r => r is PremiumRestaurant);
+
+            // Get top reviewed restaurants
+            var reviewCounts = allReviews
+                .GroupBy(r => r.RestaurantId)
+                .Select(g => new { RestaurantId = g.Key, Count = g.Count() })
+                .OrderByDescending(x => x.Count)
+                .ToList();
+
+            topReviewedRestaurants = reviewCounts
+                .Select(rc => allRestaurants.FirstOrDefault(r => r.Id == rc.RestaurantId))
+                .Where(r => r != null)
+                .Cast<RestaurantBase>()
+                .ToList();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading dashboard data: {ex.Message}");
+        }
+    }
+
+    private async Task LoadQuickRanking(string strategy)
+    {
+        isLoading = true;
+        StateHasChanged();
+
+        try
+        {
+            await Task.Delay(300);
+
+            IRankingStrategy rankingStrategy = strategy switch
+            {
+                "bestvalue" => new BestValueStrategy(),
+                "cheapest" => new CheapestStrategy(),
+                "mostfilling" => new MostFillingStrategy(),
+                _ => new BestValueStrategy()
+            };
+
+            quickRankings = await Facade.GetRankedRestaurants(rankingStrategy);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading rankings: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private string GetPercentage(int value, int total)
+    {
+        if (total == 0) return "0";
+        return ((value * 100.0) / total).ToString("F1");
+    }
+
+    private int GetReviewCount(Guid restaurantId)
+    {
+        return allReviews?.Count(r => r.RestaurantId == restaurantId) ?? 0;
+    }
+
+    private string GetRestaurantType(RestaurantBase restaurant)
+    {
+        return restaurant.GetType().Name switch
+        {
+            "FastFoodRestaurant" => "🍟 Fast Food",
+            "StudentBar" => "🍺 Student Bar",
+            "PremiumRestaurant" => "⭐ Premium",
+            _ => restaurant.GetType().Name
+        };
+    }
+
+    private string GetRankClass(int rank)
+    {
+        return rank switch
+        {
+            1 => "gold",
+            2 => "silver",
+            3 => "bronze",
+            _ => ""
+        };
+    }
+}
+

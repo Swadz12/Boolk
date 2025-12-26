@@ -2,61 +2,97 @@
 @inject RestaurantSystemFacade Facade
 @inject RankingService RankingService
 @inject RankingObserver Observer
+@inject RestaurantService RestaurantService
 
 <PageTitle>Home - Boolk</PageTitle>
 
-<h1>Restaurant Ranking System</h1>
-
-<div class="container mt-4">
-    <div class="row">
-        <div class="col-md-12">
-            <h2>Top Restaurants</h2>
-            
-            <div class="mb-3">
-                <label for="strategySelect" class="form-label">Select Ranking Strategy:</label>
-                <select @bind="selectedStrategy" @bind:event="onchange" class="form-select" id="strategySelect">
-                    <option value="bestvalue">Best Value</option>
-                    <option value="cheapest">Cheapest</option>
-                    <option value="mostfilling">Most Filling</option>
-                </select>
-            </div>
-
-            <button class="btn btn-primary mb-3" @onclick="LoadRankedRestaurants">Load Rankings</button>
-
-            @if (isLoading)
-            {
-                <p>Loading...</p>
-            }
-            else if (rankedRestaurants != null && rankedRestaurants.Any())
-            {
-                <table class="table table-striped">
-                    <thead>
-                        <tr>
-                            <th>Rank</th>
-                            <th>Name</th>
-                            <th>City</th>
-                            <th>Type</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var (restaurant, index) in rankedRestaurants.Select((r, i) => (r, i + 1)))
-                        {
-                            <tr>
-                                <td>@index</td>
-                                <td>@restaurant.Name</td>
-                                <td>@restaurant.City</td>
-                                <td>@restaurant.GetType().Name</td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            }
-            else if (rankedRestaurants != null && !rankedRestaurants.Any())
-            {
-                <p>No restaurants found. Please add some restaurants and reviews first.</p>
-            }
+<div class="hero">
+    <div class="hero-content">
+        <h1>Discover the Best Restaurants</h1>
+        <p>Find top-rated restaurants ranked by value, price, and satisfaction</p>
+        <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+            <button class="btn btn-primary" @onclick="LoadRankedRestaurants">
+                @if (isLoading)
+                {
+                    <span class="spinner" style="width: 20px; height: 20px; border-width: 2px; display: inline-block; margin-right: 0.5rem;"></span>
+                }
+                View Rankings
+            </button>
+            <a href="/restaurants" class="btn btn-secondary">Add Restaurant</a>
         </div>
     </div>
+</div>
+
+<div class="container mt-5">
+    <div class="card mb-5">
+        <div class="card-header">
+            <h2 class="card-title">Ranking Strategy</h2>
+        </div>
+        <div class="mb-4">
+            <label for="strategySelect" class="form-label">Select Ranking Strategy:</label>
+            <select @bind="selectedStrategy" @bind:event="onchange" class="form-select" id="strategySelect">
+                <option value="bestvalue">🏆 Best Value - Best satiety per price</option>
+                <option value="cheapest">💰 Cheapest - Lowest average price</option>
+                <option value="mostfilling">🍔 Most Filling - Highest satiety level</option>
+            </select>
+        </div>
+        <button class="btn btn-primary" @onclick="LoadRankedRestaurants" disabled="@isLoading">
+            @if (isLoading)
+            {
+                <span class="spinner" style="width: 20px; height: 20px; border-width: 2px; display: inline-block; margin-right: 0.5rem;"></span>
+            }
+            Apply Strategy
+        </button>
+    </div>
+
+    @if (rankedRestaurants != null && rankedRestaurants.Any())
+    {
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">Top Restaurants</h2>
+            </div>
+            <div class="grid grid-3" style="padding: 1rem;">
+                @foreach (var (restaurant, index) in rankedRestaurants.Select((r, i) => (r, i + 1)))
+                {
+                    <a href="/restaurant/@restaurant.Id" style="text-decoration: none; color: inherit;">
+                        <div class="restaurant-card fade-in" style="@($"animation-delay: {index * 0.1}s")">
+                            <div class="rank-badge @GetRankClass(index)">
+                                @index
+                            </div>
+                            <h3 class="restaurant-name">@restaurant.Name</h3>
+                            <p class="restaurant-city">📍 @restaurant.City</p>
+                            <span class="restaurant-type">@GetRestaurantType(restaurant)</span>
+                        </div>
+                    </a>
+                }
+            </div>
+        </div>
+    }
+    else if (rankedRestaurants != null && !rankedRestaurants.Any())
+    {
+        <div class="card">
+            <div style="text-align: center; padding: 3rem;">
+                <div style="font-size: 4rem; margin-bottom: 1rem;">🍽️</div>
+                <h3 style="margin-bottom: 1rem;">No restaurants found</h3>
+                <p style="color: var(--text-secondary); margin-bottom: 2rem;">
+                    Get started by adding some restaurants and reviews!
+                </p>
+                <a href="/restaurants" class="btn btn-primary">Add Your First Restaurant</a>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="card">
+            <div style="text-align: center; padding: 3rem;">
+                <div style="font-size: 4rem; margin-bottom: 1rem;">👆</div>
+                <h3 style="margin-bottom: 1rem;">Select a strategy and load rankings</h3>
+                <p style="color: var(--text-secondary);">
+                    Choose your preferred ranking method above and click "Apply Strategy"
+                </p>
+            </div>
+        </div>
+    }
 </div>
 
 @code {
@@ -72,8 +108,12 @@
     private async Task LoadRankedRestaurants()
     {
         isLoading = true;
+        StateHasChanged();
+        
         try
         {
+            await Task.Delay(300); // Smooth loading animation
+            
             IRankingStrategy strategy = selectedStrategy switch
             {
                 "bestvalue" => new BestValueStrategy(),
@@ -91,7 +131,29 @@
         finally
         {
             isLoading = false;
+            StateHasChanged();
         }
     }
-}
 
+    private string GetRestaurantType(RestaurantBase restaurant)
+    {
+        return restaurant.GetType().Name switch
+        {
+            "FastFoodRestaurant" => "🍟 Fast Food",
+            "StudentBar" => "🍺 Student Bar",
+            "PremiumRestaurant" => "⭐ Premium",
+            _ => restaurant.GetType().Name
+        };
+    }
+
+    private string GetRankClass(int rank)
+    {
+        return rank switch
+        {
+            1 => "gold",
+            2 => "silver",
+            3 => "bronze",
+            _ => ""
+        };
+    }
+}

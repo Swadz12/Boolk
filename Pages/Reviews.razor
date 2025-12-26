@@ -1,78 +1,266 @@
 @page "/reviews"
 @inject RestaurantService RestaurantService
+@inject IRestaurantRepository RestaurantRepository
+@inject IReviewRepository ReviewRepository
 @using Boolk.Repositories.Interfaces
 
 <PageTitle>Reviews - Boolk</PageTitle>
 
-<h1>Reviews</h1>
+<div class="hero" style="padding: 2rem;">
+    <div class="hero-content">
+        <h1 style="font-size: 2.5rem;">Restaurant Reviews</h1>
+        <p>Share your dining experience and help others find great places</p>
+    </div>
+</div>
 
-<div class="container mt-4">
-    <div class="row">
-        <div class="col-md-6">
-            <h2>Add New Review</h2>
+<div class="container mt-5">
+    <div class="grid grid-2">
+        <!-- Add Review Form -->
+        <div class="card fade-in">
+            <div class="card-header">
+                <h2 class="card-title">⭐ Add New Review</h2>
+            </div>
             <EditForm Model="@newReview" OnValidSubmit="@HandleSubmit">
                 <DataAnnotationsValidator />
                 <div class="mb-3">
-                    <label class="form-label">Restaurant ID:</label>
-                    <InputText @bind-Value="restaurantIdInput" class="form-control" placeholder="Enter restaurant GUID" />
+                    <label class="form-label">Restaurant:</label>
+                    @if (restaurants != null && restaurants.Any())
+                    {
+                        <InputSelect @bind-Value="selectedRestaurantId" class="form-select">
+                            <option value="">Select restaurant...</option>
+                            @foreach (var restaurant in restaurants)
+                            {
+                                <option value="@restaurant.Id">@restaurant.Name - @restaurant.City</option>
+                            }
+                        </InputSelect>
+                    }
+                    else
+                    {
+                        <p style="color: var(--text-secondary); font-size: 0.9rem;">
+                            No restaurants available. <a href="/restaurants" style="color: #667eea;">Add one first</a>
+                        </p>
+                    }
                 </div>
                 <div class="mb-3">
                     <label class="form-label">User ID:</label>
                     <InputText @bind-Value="userIdInput" class="form-control" placeholder="Enter user GUID" />
+                    <small style="color: var(--text-secondary); font-size: 0.85rem;">
+                        (In a real app, this would come from authentication)
+                    </small>
                 </div>
                 <div class="mb-3">
-                    <label class="form-label">Price:</label>
-                    <InputNumber @bind-Value="newReview.Price" class="form-control" />
+                    <label class="form-label">Price (€):</label>
+                    <InputNumber @bind-Value="newReview.Price" class="form-control" placeholder="0.00" step="0.01" />
                 </div>
                 <div class="mb-3">
                     <label class="form-label">Satiety Level (1-10):</label>
                     <InputNumber @bind-Value="newReview.SatietyLevel" class="form-control" min="1" max="10" />
+                    <div style="margin-top: 0.5rem;">
+                        @for (int i = 1; i <= 10; i++)
+                        {
+                            <span class="star" style="opacity: @(i <= newReview.SatietyLevel ? "1" : "0.3"); cursor: pointer;" @onclick="() => newReview.SatietyLevel = i">⭐</span>
+                        }
+                    </div>
                 </div>
                 <div class="mb-3">
                     <label class="form-label">Comment:</label>
-                    <InputTextArea @bind-Value="newReview.Comment" class="form-control" rows="3" />
+                    <InputTextArea @bind-Value="newReview.Comment" class="form-control" rows="4" placeholder="Share your experience..." />
                 </div>
-                <button type="submit" class="btn btn-primary">Add Review</button>
+                <button type="submit" class="btn btn-primary" disabled="@(isSubmitting || string.IsNullOrEmpty(selectedRestaurantId))">
+                    @if (isSubmitting)
+                    {
+                        <span class="spinner" style="width: 20px; height: 20px; border-width: 2px; display: inline-block; margin-right: 0.5rem;"></span>
+                    }
+                    Submit Review
+                </button>
             </EditForm>
+
+            @if (!string.IsNullOrEmpty(message))
+            {
+                <div class="alert @(message.Contains("Error") || message.Contains("Invalid") ? "alert-error" : "alert-success") mt-3">
+                    @message
+                </div>
+            }
+        </div>
+
+        <!-- Review Stats -->
+        <div class="card fade-in" style="animation-delay: 0.1s">
+            <div class="card-header">
+                <h2 class="card-title">📊 Review Statistics</h2>
+            </div>
+            <div class="stats-card" style="background: transparent; border: none; padding: 0;">
+                <div class="stats-number">@totalReviews</div>
+                <div class="stats-label">Total Reviews</div>
+            </div>
+            @if (averagePrice > 0)
+            {
+                <div style="margin-top: 1.5rem;">
+                    <div class="stats-card" style="background: transparent; border: none; padding: 0;">
+                        <div class="stats-number" style="font-size: 1.5rem;">€@averagePrice.ToString("F2")</div>
+                        <div class="stats-label">Average Price</div>
+                    </div>
+                </div>
+            }
+            @if (averageSatiety > 0)
+            {
+                <div style="margin-top: 1.5rem;">
+                    <div class="stats-card" style="background: transparent; border: none; padding: 0;">
+                        <div class="stats-number" style="font-size: 1.5rem;">
+                            @for (int i = 0; i < (int)Math.Round(averageSatiety); i++)
+                            {
+                                <span class="star">⭐</span>
+                            }
+                        </div>
+                        <div class="stats-label">Average Satiety (@averageSatiety.ToString("F1")/10)</div>
+                    </div>
+                </div>
+            }
         </div>
     </div>
 
-    @if (!string.IsNullOrEmpty(message))
+    <!-- Existing Reviews -->
+    @if (reviews != null && reviews.Any())
     {
-        <div class="alert alert-info mt-3">@message</div>
+        <div class="card mt-5 fade-in" style="animation-delay: 0.2s">
+            <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                <h2 class="card-title">💬 All Reviews</h2>
+                <button class="btn btn-secondary" @onclick="RefreshReviews" style="padding: 0.5rem 1rem; font-size: 0.85rem;">
+                    🔄 Refresh
+                </button>
+            </div>
+            <div style="padding: 1rem;">
+                @foreach (var review in reviews.OrderByDescending(r => r.Price))
+                {
+                    <div class="review-card fade-in">
+                        <div class="review-header">
+                            <div>
+                                <div style="font-weight: 600; margin-bottom: 0.25rem;">
+                                    @GetRestaurantName(review.RestaurantId)
+                                </div>
+                                <small style="color: var(--text-secondary);">
+                                    Review ID: @review.Id.ToString().Substring(0, 8)...
+                                </small>
+                            </div>
+                            <div class="review-price">€@review.Price.ToString("F2")</div>
+                        </div>
+                        <div class="review-satiety" style="margin-bottom: 1rem;">
+                            @for (int i = 1; i <= 10; i++)
+                            {
+                                <span class="star" style="opacity: @(i <= review.SatietyLevel ? "1" : "0.2")">⭐</span>
+                            }
+                            <span style="margin-left: 0.5rem; color: var(--text-secondary);">(@review.SatietyLevel/10)</span>
+                        </div>
+                        @if (!string.IsNullOrEmpty(review.Comment))
+                        {
+                            <p style="color: var(--text-primary); line-height: 1.6;">
+                                "@review.Comment"
+                            </p>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    }
+    else if (reviews != null && !reviews.Any())
+    {
+        <div class="card mt-5 fade-in" style="animation-delay: 0.2s">
+            <div style="text-align: center; padding: 3rem;">
+                <div style="font-size: 4rem; margin-bottom: 1rem;">⭐</div>
+                <h3 style="margin-bottom: 1rem;">No reviews yet</h3>
+                <p style="color: var(--text-secondary);">
+                    Be the first to share your dining experience!
+                </p>
+            </div>
+        </div>
     }
 </div>
 
 @code {
     private Review newReview = new Review();
-    private string restaurantIdInput = "";
+    private string selectedRestaurantId = "";
     private string userIdInput = "";
     private string message = "";
+    private bool isSubmitting = false;
+    private List<RestaurantBase>? restaurants;
+    private List<Review>? reviews;
+    private int totalReviews = 0;
+    private decimal averagePrice = 0;
+    private decimal averageSatiety = 0;
 
-    private async Task HandleSubmit()
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
     {
         try
         {
-            if (Guid.TryParse(restaurantIdInput, out var restaurantId) && 
+            restaurants = (await RestaurantRepository.GetAllAsync()).ToList();
+            reviews = (await ReviewRepository.GetAllAsync()).ToList();
+            totalReviews = reviews.Count;
+            
+            if (reviews.Any())
+            {
+                averagePrice = reviews.Average(r => r.Price);
+                averageSatiety = reviews.Average(r => (decimal)r.SatietyLevel);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading data: {ex.Message}");
+        }
+    }
+
+    private async Task HandleSubmit()
+    {
+        isSubmitting = true;
+        message = "";
+        StateHasChanged();
+
+        try
+        {
+            if (Guid.TryParse(selectedRestaurantId, out var restaurantId) && 
                 Guid.TryParse(userIdInput, out var userId))
             {
                 newReview.RestaurantId = restaurantId;
                 newReview.UserId = userId;
                 await RestaurantService.AddReview(newReview);
-                message = "Review added successfully!";
+                message = "✅ Review added successfully!";
                 newReview = new Review();
-                restaurantIdInput = "";
+                selectedRestaurantId = "";
                 userIdInput = "";
+                
+                await LoadData();
+                
+                await Task.Delay(3000);
+                message = "";
             }
             else
             {
-                message = "Invalid GUID format for Restaurant ID or User ID";
+                message = "❌ Invalid GUID format for Restaurant ID or User ID";
             }
         }
         catch (Exception ex)
         {
-            message = $"Error: {ex.Message}";
+            message = $"❌ Error: {ex.Message}";
+        }
+        finally
+        {
+            isSubmitting = false;
+            StateHasChanged();
         }
     }
-}
 
+    private async Task RefreshReviews()
+    {
+        await LoadData();
+        StateHasChanged();
+    }
+
+    private string GetRestaurantName(Guid restaurantId)
+    {
+        var restaurant = restaurants?.FirstOrDefault(r => r.Id == restaurantId);
+        return restaurant != null ? $"{restaurant.Name} - {restaurant.City}" : "Unknown Restaurant";
+    }
+}

@@ -1,0 +1,242 @@
+@page "/restaurant/{RestaurantId:guid}"
+@inject IRestaurantRepository RestaurantRepository
+@inject IReviewRepository ReviewRepository
+@using Boolk.Repositories.Interfaces
+
+<PageTitle>Restaurant Details - Boolk</PageTitle>
+
+@if (restaurant == null && !isLoading)
+{
+    <div class="container mt-5">
+        <div class="card">
+            <div style="text-align: center; padding: 3rem;">
+                <div style="font-size: 4rem; margin-bottom: 1rem;">🔍</div>
+                <h3 style="margin-bottom: 1rem;">Restaurant not found</h3>
+                <p style="color: var(--text-secondary); margin-bottom: 2rem;">
+                    The restaurant you're looking for doesn't exist.
+                </p>
+                <a href="/restaurants" class="btn btn-primary">Browse Restaurants</a>
+            </div>
+        </div>
+    </div>
+}
+else if (isLoading)
+{
+    <div class="container mt-5">
+        <div class="card">
+            <div style="text-align: center; padding: 3rem;">
+                <div class="spinner"></div>
+                <p style="margin-top: 1rem; color: var(--text-secondary);">Loading restaurant details...</p>
+            </div>
+        </div>
+    </div>
+}
+else if (restaurant != null)
+{
+    <div class="hero" style="padding: 2rem;">
+        <div class="hero-content">
+            <h1 style="font-size: 2.5rem;">@restaurant.Name</h1>
+            <p>📍 @restaurant.City</p>
+        </div>
+    </div>
+
+    <div class="container mt-5">
+        <div class="grid grid-2 mb-5">
+            <!-- Restaurant Info Card -->
+            <div class="card fade-in">
+                <div class="card-header">
+                    <h2 class="card-title">ℹ️ Restaurant Information</h2>
+                </div>
+                <div style="padding: 1rem;">
+                    <div style="margin-bottom: 1.5rem;">
+                        <div style="font-size: 3rem; text-align: center; margin-bottom: 1rem;">
+                            @GetRestaurantIcon()
+                        </div>
+                        <div style="text-align: center;">
+                            <span class="restaurant-type">@GetRestaurantType(restaurant)</span>
+                        </div>
+                    </div>
+                    <div style="padding: 1rem; background: var(--glass-bg); border-radius: 12px; margin-bottom: 1rem;">
+                        <div style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 0.5rem;">Restaurant ID</div>
+                        <div style="font-family: monospace; font-size: 0.85rem;">@restaurant.Id</div>
+                    </div>
+                    <div style="padding: 1rem; background: var(--glass-bg); border-radius: 12px;">
+                        <div style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 0.5rem;">Location</div>
+                        <div style="font-weight: 600;">📍 @restaurant.City</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Statistics Card -->
+            <div class="card fade-in" style="animation-delay: 0.1s">
+                <div class="card-header">
+                    <h2 class="card-title">📊 Statistics</h2>
+                </div>
+                <div style="padding: 1rem;">
+                    <div class="stats-card" style="background: transparent; border: none; padding: 0; margin-bottom: 1.5rem;">
+                        <div class="stats-number">@reviewCount</div>
+                        <div class="stats-label">Total Reviews</div>
+                    </div>
+                    @if (reviewCount > 0)
+                    {
+                        <div class="stats-card" style="background: transparent; border: none; padding: 0; margin-bottom: 1.5rem;">
+                            <div class="stats-number" style="font-size: 1.5rem;">€@averagePrice.ToString("F2")</div>
+                            <div class="stats-label">Average Price</div>
+                        </div>
+                        <div class="stats-card" style="background: transparent; border: none; padding: 0;">
+                            <div class="stats-number" style="font-size: 1.5rem;">
+                                @for (int i = 0; i < (int)Math.Round(averageSatiety); i++)
+                                {
+                                    <span class="star">⭐</span>
+                                }
+                            </div>
+                            <div class="stats-label">Average Satiety (@averageSatiety.ToString("F1")/10)</div>
+                        </div>
+                    }
+                    else
+                    {
+                        <p style="color: var(--text-secondary); text-align: center; padding: 2rem;">
+                            No reviews yet
+                        </p>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Reviews Section -->
+        @if (reviews != null && reviews.Any())
+        {
+            <div class="card fade-in" style="animation-delay: 0.2s">
+                <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                    <h2 class="card-title">💬 Reviews (@reviewCount)</h2>
+                    <a href="/reviews" class="btn btn-secondary" style="padding: 0.5rem 1rem; font-size: 0.85rem;">
+                        ➕ Add Review
+                    </a>
+                </div>
+                <div style="padding: 1rem;">
+                    @foreach (var review in reviews.OrderByDescending(r => r.Price))
+                    {
+                        <div class="review-card fade-in">
+                            <div class="review-header">
+                                <div>
+                                    <div style="font-weight: 600; margin-bottom: 0.25rem;">
+                                        Review #@review.Id.ToString().Substring(0, 8)...
+                                    </div>
+                                    <small style="color: var(--text-secondary);">
+                                        User: @review.UserId.ToString().Substring(0, 8)...
+                                    </small>
+                                </div>
+                                <div class="review-price">€@review.Price.ToString("F2")</div>
+                            </div>
+                            <div class="review-satiety" style="margin-bottom: 1rem;">
+                                @for (int i = 1; i <= 10; i++)
+                                {
+                                    <span class="star" style="opacity: @(i <= review.SatietyLevel ? "1" : "0.2")">⭐</span>
+                                }
+                                <span style="margin-left: 0.5rem; color: var(--text-secondary);">(@review.SatietyLevel/10)</span>
+                            </div>
+                            @if (!string.IsNullOrEmpty(review.Comment))
+                            {
+                                <p style="color: var(--text-primary); line-height: 1.6; font-style: italic;">
+                                    "@review.Comment"
+                                </p>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="card fade-in" style="animation-delay: 0.2s">
+                <div style="text-align: center; padding: 3rem;">
+                    <div style="font-size: 4rem; margin-bottom: 1rem;">⭐</div>
+                    <h3 style="margin-bottom: 1rem;">No reviews yet</h3>
+                    <p style="color: var(--text-secondary); margin-bottom: 2rem;">
+                        Be the first to review this restaurant!
+                    </p>
+                    <a href="/reviews" class="btn btn-primary">Add First Review</a>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    [Parameter]
+    public Guid RestaurantId { get; set; }
+
+    private RestaurantBase? restaurant;
+    private List<Review>? reviews;
+    private bool isLoading = true;
+    private int reviewCount = 0;
+    private decimal averagePrice = 0;
+    private decimal averageSatiety = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadRestaurant();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await LoadRestaurant();
+    }
+
+    private async Task LoadRestaurant()
+    {
+        isLoading = true;
+        StateHasChanged();
+
+        try
+        {
+            await Task.Delay(300); // Smooth loading animation
+            
+            restaurant = await RestaurantRepository.GetByIdAsync(RestaurantId);
+            
+            if (restaurant != null)
+            {
+                reviews = (await ReviewRepository.GetByRestaurantIdAsync(RestaurantId)).ToList();
+                reviewCount = reviews.Count;
+                
+                if (reviews.Any())
+                {
+                    averagePrice = reviews.Average(r => r.Price);
+                    averageSatiety = reviews.Average(r => (decimal)r.SatietyLevel);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading restaurant: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private string GetRestaurantType(RestaurantBase restaurant)
+    {
+        return restaurant.GetType().Name switch
+        {
+            "FastFoodRestaurant" => "🍟 Fast Food",
+            "StudentBar" => "🍺 Student Bar",
+            "PremiumRestaurant" => "⭐ Premium",
+            _ => restaurant.GetType().Name
+        };
+    }
+
+    private string GetRestaurantIcon()
+    {
+        return restaurant?.GetType().Name switch
+        {
+            "FastFoodRestaurant" => "🍟",
+            "StudentBar" => "🍺",
+            "PremiumRestaurant" => "⭐",
+            _ => "🍽️"
+        };
+    }
+}
+
