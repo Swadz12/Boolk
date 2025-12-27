@@ -7,6 +7,11 @@ using Boolk.RankingEngine.Observers;
 using Boolk.Services;
 using Boolk.Facade;
 using Blazored.LocalStorage;
+using System.Globalization;
+
+var culture = CultureInfo.InvariantCulture;
+CultureInfo.DefaultThreadCurrentCulture = culture;
+CultureInfo.DefaultThreadCurrentUICulture = culture;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddRazorPages();

@@ -91,7 +91,7 @@ public class FirebaseReviewRepository : IReviewRepository
             Id = Guid.Parse(doc.Id),
             UserId = Guid.Parse(data["UserId"].ToString() ?? Guid.Empty.ToString()),
             RestaurantId = Guid.Parse(data["RestaurantId"].ToString() ?? Guid.Empty.ToString()),
-            Price = Convert.ToDecimal(data["Price"]),
+            Price = Convert.ToDouble(data["Price"]),
             SatietyLevel = Convert.ToInt32(data["SatietyLevel"]),
             Comment = data["Comment"].ToString() ?? ""
         };
