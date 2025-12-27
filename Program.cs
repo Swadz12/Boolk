@@ -6,7 +6,7 @@ using Boolk.RankingEngine;
 using Boolk.RankingEngine.Observers;
 using Boolk.Services;
 using Boolk.Facade;
-
+using Blazored.LocalStorage;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddRazorPages();
@@ -34,6 +34,8 @@ builder.Services.AddScoped<RestaurantService>();
 builder.Services.AddScoped<UserService>();
 
 builder.Services.AddScoped<RestaurantSystemFacade>();
+// LocalStorage
+builder.Services.AddBlazoredLocalStorage();
 
 var app = builder.Build();
 

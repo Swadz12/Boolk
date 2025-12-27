@@ -4,99 +4,123 @@
 
 <PageTitle>Profile - Boolk</PageTitle>
 
-<!-- HERO -->
-<div class="hero">
-    <div class="hero-content">
-        <h1>👤 Your Profile</h1>
-        <p>Manage your account and authentication</p>
+@if (!isInitialized)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <!-- HERO -->
+    <div class="hero">
+        <div class="hero-content">
+            <h1>👤 Your Profile</h1>
+            <p>Manage your account and authentication</p>
+
+            @if (UserService.CurrentUser == null)
+            {
+                <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+                    <a href="/login" class="btn btn-primary">🔐 Login</a>
+                    <a href="/register" class="btn btn-secondary">✨ Register</a>
+                </div>
+            }
+            else
+            {
+                <button class="btn btn-danger" @onclick="Logout">
+                    🚪 Logout
+                </button>
+            }
+        </div>
+    </div>
+
+    <div class="container mt-5">
 
         @if (UserService.CurrentUser == null)
         {
-            <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
-                <a href="/login" class="btn btn-primary">🔐 Login</a>
-                <a href="/register" class="btn btn-secondary">✨ Register</a>
+            <!-- AUTH OPTIONS -->
+            <div class="card mb-5">
+                <div class="card-header">
+                    <h2 class="card-title">Authentication</h2>
+                </div>
+
+                <div class="grid grid-2" style="padding: 1.5rem;">
+
+                    <!-- EMAIL AUTH -->
+                    <div class="restaurant-card">
+                        <h3>📧 Email & Password</h3>
+                        <p style="color: var(--text-secondary); margin-bottom: 1rem;">
+                            Login or register using your email address.
+                        </p>
+                        <a href="/login" class="btn btn-primary">Login</a>
+                        <a href="/register" class="btn btn-secondary" style="margin-left: .5rem;">
+                            Register
+                        </a>
+                    </div>
+
+                    <!-- GOOGLE AUTH -->
+                    <div class="restaurant-card">
+                        <h3>🔵 Google Sign-In</h3>
+                        <p style="color: var(--text-secondary); margin-bottom: 1rem;">
+                            Sign in quickly using your Google account.
+                        </p>
+
+                        <!-- PLACEHOLDER -->
+                        <button class="btn btn-outline" disabled>
+                            Continue with Google
+                        </button>
+
+                        <small style="display: block; margin-top: .5rem; color: var(--text-secondary);">
+                            (Coming soon)
+                        </small>
+                    </div>
+                </div>
             </div>
         }
         else
         {
-            <button class="btn btn-danger" @onclick="Logout">
-                🚪 Logout
-            </button>
+            <!-- USER INFO -->
+            <div class="card mb-5">
+                <div class="card-header">
+                    <h2 class="card-title">Account Details</h2>
+                </div>
+
+                <div class="grid grid-2" style="padding: 1.5rem; align-items: center;">
+                    <div>
+                        <h3>@UserService.CurrentUser.Email</h3>
+                    </div>
+
+                    <div style="text-align: right;">
+                        <button class="btn btn-danger" @onclick="Logout">
+                            🚪 Logout
+                        </button>
+                    </div>
+                </div>
+            </div>
         }
     </div>
-</div>
-
-<div class="container mt-5">
-
-    @if (UserService.CurrentUser == null)
-    {
-        <!-- AUTH OPTIONS -->
-        <div class="card mb-5">
-            <div class="card-header">
-                <h2 class="card-title">Authentication</h2>
-            </div>
-
-            <div class="grid grid-2" style="padding: 1.5rem;">
-                
-                <!-- EMAIL AUTH -->
-                <div class="restaurant-card">
-                    <h3>📧 Email & Password</h3>
-                    <p style="color: var(--text-secondary); margin-bottom: 1rem;">
-                        Login or register using your email address.
-                    </p>
-                    <a href="/login" class="btn btn-primary">Login</a>
-                    <a href="/register" class="btn btn-secondary" style="margin-left: .5rem;">
-                        Register
-                    </a>
-                </div>
-
-                <!-- GOOGLE AUTH -->
-                <div class="restaurant-card">
-                    <h3>🔵 Google Sign-In</h3>
-                    <p style="color: var(--text-secondary); margin-bottom: 1rem;">
-                        Sign in quickly using your Google account.
-                    </p>
-
-                    <!-- PLACEHOLDER -->
-                    <button class="btn btn-outline" disabled>
-                        Continue with Google
-                    </button>
-
-                    <small style="display: block; margin-top: .5rem; color: var(--text-secondary);">
-                        (Coming soon)
-                    </small>
-                </div>
-            </div>
-        </div>
-    }
-    else
-    {
-        <!-- USER INFO -->
-        <div class="card mb-5">
-            <div class="card-header">
-                <h2 class="card-title">Account Details</h2>
-            </div>
-
-            <div class="grid grid-2" style="padding: 1.5rem; align-items: center;">
-                <div>
-                    <h3>@UserService.CurrentUser.Email</h3>
-                    
-                </div>
-
-                <div style="text-align: right;">
-                    <button class="btn btn-danger" @onclick="Logout">
-                        🚪 Logout
-                    </button>
-                </div>
-            </div>
-        </div>
-    }
-</div>
+}
 
 @code {
-    private void Logout()
+    private bool isInitialized = false;
+    private bool firstRenderDone = false;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        UserService.Logout();
+        if (firstRender && !firstRenderDone)
+        {
+            firstRenderDone = true;
+
+            // Inicjalizacja usera bezpośrednio po załadowaniu przeglądarki
+            await UserService.InitializeAsync();
+
+            isInitialized = true;
+            StateHasChanged(); // odśwież UI po zakończeniu inicjalizacji
+        }
+    }
+
+    private async Task Logout()
+    {
+        await UserService.Logout();
         Nav.NavigateTo("/");
     }
 }
+
