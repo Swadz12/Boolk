@@ -89,25 +89,30 @@ public class FirebaseReviewRepository : IReviewRepository
         return new Review
         {
             Id = Guid.Parse(doc.Id),
-            UserId = Guid.Parse(data["UserId"].ToString() ?? Guid.Empty.ToString()),
-            RestaurantId = Guid.Parse(data["RestaurantId"].ToString() ?? Guid.Empty.ToString()),
+            UserId = Guid.Parse(data["UserId"].ToString()!),
+            UserName = data["UserName"]?.ToString() ?? "Unknown",
+            RestaurantId = Guid.Parse(data["RestaurantId"].ToString()!),
             Price = Convert.ToDouble(data["Price"]),
             SatietyLevel = Convert.ToInt32(data["SatietyLevel"]),
-            Comment = data["Comment"].ToString() ?? ""
+            Comment = data["Comment"]?.ToString() ?? "",
+            CreatedAt = ((Timestamp)data["CreatedAt"]).ToDateTime()
         };
     }
 
+
     private Dictionary<string, object> MapToDictionary(Review review)
+{
+    return new Dictionary<string, object>
     {
-        return new Dictionary<string, object>
-        {
-            { "Id", review.Id.ToString() },
-            { "UserId", review.UserId.ToString() },
-            { "RestaurantId", review.RestaurantId.ToString() },
-            { "Price", review.Price },
-            { "SatietyLevel", review.SatietyLevel },
-            { "Comment", review.Comment }
-        };
-    }
+        { "Id", review.Id.ToString() },
+        { "UserId", review.UserId.ToString() },
+        { "UserName", review.UserName },
+        { "RestaurantId", review.RestaurantId.ToString() },
+        { "Price", review.Price },
+        { "SatietyLevel", review.SatietyLevel },
+        { "Comment", review.Comment },
+        { "CreatedAt", Timestamp.FromDateTime(review.CreatedAt.ToUniversalTime()) }
+    };
+}
 }
 

@@ -150,7 +150,7 @@ else
                 </button>
             </div>
             <div style="padding: 1rem;">
-                @foreach (var review in reviews.OrderByDescending(r => r.Price))
+                @foreach (var review in reviews.OrderByDescending(r => r.CreatedAt))
                 {
                     <div class="review-card fade-in">
                         <div class="review-header">
@@ -159,8 +159,9 @@ else
                                     @GetRestaurantName(review.RestaurantId)
                                 </div>
                                 <small style="color: var(--text-secondary);">
-                                    Review ID: @review.Id.ToString().Substring(0, 8)...
+                                    👤 @review.UserName • 🕒 @review.CreatedAt.ToLocalTime().ToString("dd MMM yyyy HH:mm")
                                 </small>
+
                             </div>
                             <div class="review-price">€@review.Price.ToString("F2")</div>
                         </div>
@@ -253,7 +254,9 @@ else
                 )
             {
                 newReview.RestaurantId = restaurantId;
+                newReview.UserName = UserService.CurrentUser.Name;
                 newReview.UserId = UserService.CurrentUser.Id ;
+                newReview.CreatedAt = DateTime.UtcNow;
                 await RestaurantService.AddReview(newReview);
                 message = "✅ Review added successfully!";
                 newReview = new Review();

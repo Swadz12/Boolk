@@ -3,7 +3,7 @@
 @inject NavigationManager Nav
 @inject IReviewRepository ReviewRepository
 @inject IJSRuntime JsRuntime
-
+@inject IRestaurantRepository RestaurantRepository
 <PageTitle>Profile - Boolk</PageTitle>
 
 @if (!isInitialized)
@@ -96,14 +96,12 @@ else
 
                 <div class="grid grid-2" style="padding: 1.5rem; align-items: center;">
                     <div>
-                        <h3>@UserService.CurrentUser.Email</h3>
+                        <h3>Name: @UserService.CurrentUser.Name</h3>
+                        <h3>Birth Date: @UserService.CurrentUser.BirthDate.ToLocalTime().ToString("MM/dd/yyyy")</h3>
+                        <h3>Email: @UserService.CurrentUser.Email</h3>
                     </div>
 
-                    <div style="text-align: right;">
-                        <button class="btn btn-danger" @onclick="Logout">
-                            🚪 Logout
-                        </button>
-                    </div>
+                    
                 </div>
             </div>
 
@@ -123,6 +121,9 @@ else
                                         <strong>@GetRestaurantName(review.RestaurantId)</strong>
                                         <div style="font-size:0.8rem; color: var(--text-secondary);">
                                             Review ID: @review.Id.ToString().Substring(0,8)...
+                                        </div>
+                                        <div style="font-size:0.8rem; color: var(--text-secondary);">
+                                            @review.CreatedAt.ToLocalTime().ToString("dd MMM yyyy HH:mm")
                                         </div>
                                     </div>
                                     <button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteReview(review.Id)">
@@ -149,6 +150,8 @@ else
     private bool isInitialized = false;
     private bool firstRenderDone = false;
     private List<Review>? userReviews;
+    private List<RestaurantBase>? restaurants;
+    
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -162,6 +165,7 @@ else
             if (UserService.CurrentUser != null)
             {
                 userReviews = (await ReviewRepository.GetByUserIdAsync(UserService.CurrentUser.Id)).ToList();
+                restaurants = (await RestaurantRepository.GetAllAsync()).ToList();
             }
 
             StateHasChanged();
@@ -189,10 +193,9 @@ else
         StateHasChanged();
     }
 
-    // Metoda do wyświetlania nazwy restauracji - jeśli masz już w innym repo, możesz ją wywołać zamiast pisać od nowa
     private string GetRestaurantName(Guid restaurantId)
     {
-        // Tu możesz użyć własnej metody, np. RestaurantRepository.GetById
-        return restaurantId.ToString(); // placeholder
+        var restaurant = restaurants?.FirstOrDefault(r => r.Id == restaurantId);
+        return restaurant != null ? $"{restaurant.Name} - {restaurant.City}" : "Unknown Restaurant";
     }
 }
