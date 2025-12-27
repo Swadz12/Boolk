@@ -15,8 +15,17 @@ else
     <!-- HERO -->
     <div class="hero">
         <div class="hero-content">
-            <h1>👤 Your Profile</h1>
-            <p>Manage your account and authentication</p>
+            @if (UserService.CurrentUser != null)
+            {
+                <h1>👋 Welcome back, @UserService.CurrentUser.Name!</h1>
+                <p>Manage your account and reviews</p>
+            }
+            else
+            {
+                <h1>👤 Your Profile</h1>
+                <p>Manage your account and authentication</p>
+            }
+           
 
             @if (UserService.CurrentUser == null)
             {

@@ -30,7 +30,7 @@ public class UserService
         }
     }
 
-    public async Task<User> RegisterUser(string email, string password)
+    public async Task<User> RegisterUser(string email,string name,DateTime birthdate, string password)
     {
         var existingUser = await _userRepo.GetByEmailAsync(email);
         if (existingUser != null)
@@ -40,6 +40,8 @@ public class UserService
         {
             Id = Guid.NewGuid(),
             Email = email,
+            Name = name,
+            BirthDate = birthdate,
             PasswordHash = HashPassword(password)
         };
 

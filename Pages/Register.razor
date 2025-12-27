@@ -15,10 +15,23 @@
             <EditForm Model="registerModel" OnValidSubmit="HandleRegister">
                 <DataAnnotationsValidator />
                 <ValidationSummary />
+                <div class="form-group">
+                    <label>Name</label>
+                    <InputText @bind-Value="registerModel.Name" type = "name" class = "form-control" placeholder = "Enter your name"></InputText>
 
+
+                </div>
+                
+                
                 <div class="form-group">
                     <label>Email</label>
                     <InputText @bind-Value="registerModel.Email" type="email" class="form-control" placeholder="Enter your email" />
+                </div>
+                
+                <div class=form-group>
+                    <label>Birth Date</label>
+                    <InputDate @bind-Value="registerModel.BirthDate" class="form-control" placeholder = DateTime />
+                    
                 </div>
 
                 <div class="form-group">
@@ -55,7 +68,7 @@
 
         try
         {
-            await UserService.RegisterUser(registerModel.Email, registerModel.Password);
+            await UserService.RegisterUser(registerModel.Email,registerModel.Name,registerModel.BirthDate, registerModel.Password);
             Nav.NavigateTo("/profile");
         }
         catch (Exception ex)
@@ -76,5 +89,11 @@
 
         [Required(ErrorMessage = "Password is required")]
         public string Password { get; set; } = "";
+
+        [Required(ErrorMessage = "Name is required")]
+        public string Name { get; set; } = "";
+
+        [Required(ErrorMessage = "Birth Date is required")]
+        public DateTime BirthDate { get; set; } = DateTime.Today;
     }
 }

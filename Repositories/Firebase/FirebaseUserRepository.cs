@@ -73,12 +73,18 @@ public class FirebaseUserRepository : IUserRepository
     {
         var data = doc.ToDictionary();
         if (data == null) return null;
-
+        var birthDate = DateTime.MinValue;
+        if (data.ContainsKey("BirthDate") && data["BirthDate"] is Timestamp ts)
+        {
+            birthDate = ts.ToDateTime();
+        }
         return new User
         {
             Id = Guid.Parse(doc.Id),
             Email = data["Email"].ToString() ?? "",
-            PasswordHash = data["PasswordHash"].ToString() ?? ""
+            PasswordHash = data["PasswordHash"].ToString() ?? "",
+            Name = data["Name"].ToString() ?? "",
+            BirthDate = birthDate
         };
     }
 
@@ -88,7 +94,9 @@ public class FirebaseUserRepository : IUserRepository
         {
             { "Id", user.Id.ToString() },
             { "Email", user.Email },
-            { "PasswordHash", user.PasswordHash }
+            { "PasswordHash", user.PasswordHash },
+            { "Name", user.Name },
+            { "BirthDate", DateTime.SpecifyKind(user.BirthDate, DateTimeKind.Utc) },
         };
     }
 }
