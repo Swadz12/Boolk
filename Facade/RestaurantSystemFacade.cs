@@ -27,5 +27,18 @@ public class RestaurantSystemFacade
         var allRestaurants = await GetRankedRestaurants(strategy);
         return allRestaurants.Where(r => r is FastFoodRestaurant).ToList();
     }
-}
 
+    public async Task<List<RestaurantBase>> GetTopStudentBars()
+    {
+        var strategy = new BestValueStrategy();
+        var allRestaurants = await GetRankedRestaurants(strategy);
+        return allRestaurants.Where(r => r is StudentBar).ToList();
+    }
+
+    public async Task<List<RestaurantBase>> GetTopPremium()
+    {
+        var strategy = new BestValueStrategy();
+        var allRestaurants = await GetRankedRestaurants(strategy);
+        return allRestaurants.Where(r => r is PremiumRestaurant).ToList();
+    }
+}

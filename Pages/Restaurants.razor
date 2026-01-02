@@ -37,10 +37,12 @@
                 <div class="mb-3">
                     <label class="form-label" style="margin: 0.5rem; display: block;">Name:</label>
                     <InputText @bind-Value="newRestaurant.Name" class="form-control" placeholder="Enter restaurant name" />
+                    <ValidationMessage For="@(() => newRestaurant.Name)" class="validation-message" />
                 </div>
                 <div class="mb-3">
                     <label class="form-label" style="margin: 0.5rem; display: block;">City:</label>
                     <InputText @bind-Value="newRestaurant.City" class="form-control" placeholder="Enter city" />
+                    <ValidationMessage For="@(() => newRestaurant.City)" class="validation-message" />
                 </div>
                 <button type="submit" class="btn btn-primary" disabled="@isSubmitting" style="margin-top: 1rem;">
                     @if (isSubmitting)

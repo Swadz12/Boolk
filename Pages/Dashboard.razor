@@ -169,13 +169,13 @@
         </div>
         <div style="padding: 1rem;">
             <div style="display: flex; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap;">
-                <button class="btn btn-primary" @onclick="@(() => LoadQuickRanking("bestvalue"))" disabled="@isLoading">
+                <button class="btn @(activeStrategy == "bestvalue" ? "btn-primary" : "btn-secondary")" @onclick="@(() => LoadQuickRanking("bestvalue"))" disabled="@isLoading">
                     🏆 Best Value
                 </button>
-                <button class="btn btn-secondary" @onclick="@(() => LoadQuickRanking("cheapest"))" disabled="@isLoading">
+                <button class="btn @(activeStrategy == "cheapest" ? "btn-primary" : "btn-secondary")" @onclick="@(() => LoadQuickRanking("cheapest"))" disabled="@isLoading">
                     💰 Cheapest
                 </button>
-                <button class="btn btn-secondary" @onclick="@(() => LoadQuickRanking("mostfilling"))" disabled="@isLoading">
+                <button class="btn @(activeStrategy == "mostfilling" ? "btn-primary" : "btn-secondary")" @onclick="@(() => LoadQuickRanking("mostfilling"))" disabled="@isLoading">
                     🍔 Most Filling
                 </button>
             </div>
@@ -223,12 +223,14 @@
     private List<RestaurantBase>? topReviewedRestaurants;
     private List<RestaurantBase>? quickRankings;
     private bool isLoading = false;
+    private string activeStrategy = "bestvalue";
     private List<Review>? allReviews;
     private List<RestaurantBase>? allRestaurants;
 
     protected override async Task OnInitializedAsync()
     {
         await LoadDashboardData();
+        await LoadQuickRanking(activeStrategy);
     }
 
     private async Task LoadDashboardData()
@@ -278,6 +280,7 @@
     private async Task LoadQuickRanking(string strategy)
     {
         isLoading = true;
+        activeStrategy = strategy;
         StateHasChanged();
 
         try
