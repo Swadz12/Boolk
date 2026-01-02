@@ -24,19 +24,19 @@
 </div>
 
 <div class="container mt-5">
-    <div class="card mb-5">
+    <div class="card fade-in" style="margin-bottom: 1.5rem;">
         <div class="card-header">
             <h2 class="card-title">Ranking Strategy</h2>
         </div>
         <div class="mb-4">
-            <label for="strategySelect" class="form-label">Select Ranking Strategy:</label>
+            <label for="strategySelect" class="form-label" style="margin-top: 1rem; margin-bottom: 1rem">Select Ranking Strategy:</label>
             <select @bind="selectedStrategy" @bind:event="onchange" class="form-select" id="strategySelect">
                 <option value="bestvalue">🏆 Best Value - Best satiety per price</option>
                 <option value="cheapest">💰 Cheapest - Lowest average price</option>
                 <option value="mostfilling">🍔 Most Filling - Highest satiety level</option>
             </select>
         </div>
-        <button class="btn btn-primary" @onclick="LoadRankedRestaurants" disabled="@isLoading">
+        <button class="btn btn-primary" @onclick="LoadRankedRestaurants" disabled="@isLoading"style="margin-top: 2rem">
             @if (isLoading)
             {
                 <span class="spinner" style="width: 20px; height: 20px; border-width: 2px; display: inline-block; margin-right: 0.5rem;"></span>
@@ -83,9 +83,9 @@
     }
     else
     {
-        <div class="card">
-            <div style="text-align: center; padding: 3rem;">
-                <div style="font-size: 4rem; margin-bottom: 1rem;">👆</div>
+        <div class="card fade-in" style="animation-delay: 0.2s">
+            <div style="text-align: center; padding: 4rem 2rem;">
+                <div style="font-size: 4rem; margin-bottom: 1.5rem;">👆</div>
                 <h3 style="margin-bottom: 1rem;">Select a strategy and load rankings</h3>
                 <p style="color: var(--text-secondary);">
                     Choose your preferred ranking method above and click "Apply Strategy"

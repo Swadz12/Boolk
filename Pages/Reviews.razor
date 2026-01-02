@@ -36,7 +36,7 @@ else
         <DataAnnotationsValidator />
 
         <div class="mb-3">
-            <label class="form-label">Restaurant:</label>
+            <label class="form-label" style="margin: 0.5rem; display: block;">Restaurant:</label>
             @if (restaurants != null && restaurants.Any())
             {
                 <InputSelect @bind-Value="selectedRestaurantId" class="form-select">
@@ -50,7 +50,7 @@ else
         </div>
 
         <div class="mb-3">
-            <label class="form-label">Price (€):</label>
+            <label class="form-label" style="margin: 0.5rem; display: block;">Price (€):</label>
             <InputNumber @bind-Value="newReview.Price"
                          TValue="double"
                          class="form-control"
@@ -59,7 +59,7 @@ else
         </div>
 
         <div class="mb-3">
-            <label class="form-label">Satiety Level (1-10):</label>
+            <label class="form-label" style="margin: 0.5rem; display: block;">Satiety Level (1-10):</label>
             <div>
                 @for (int i = 1; i <= 10; i++)
                 {
@@ -74,13 +74,13 @@ else
         </div>
 
         <div class="mb-3">
-            <label class="form-label">Comment:</label>
+            <label class="form-label" style="margin: 0.5rem; display: block;">Comment:</label>
             <InputTextArea @bind-Value="newReview.Comment"
                            class="form-control"
                            rows="4" />
         </div>
 
-        <button type="submit" class="btn btn-primary" disabled="@(isSubmitting || string.IsNullOrEmpty(selectedRestaurantId))">
+        <button type="submit" class="btn btn-primary" disabled="@(isSubmitting || string.IsNullOrEmpty(selectedRestaurantId))"  style="margin-top: 1rem;">
             @if (isSubmitting)
             {
                 <span class="spinner-border spinner-border-sm me-2" role="status"></span>
@@ -142,7 +142,7 @@ else
     <!-- Existing Reviews -->
     @if (reviews != null && reviews.Any())
     {
-        <div class="card mt-5 fade-in" style="animation-delay: 0.2s">
+        <div class="card mt-5 fade-in" style="margin-top: 2rem;animation-delay: 0.2s">
             <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
                 <h2 class="card-title">💬 All Reviews</h2>
                 <button class="btn btn-secondary" @onclick="RefreshReviews" style="padding: 0.5rem 1rem; font-size: 0.85rem;">

@@ -21,7 +21,7 @@
             <EditForm Model="@newRestaurant" OnValidSubmit="@HandleSubmit">
                 <DataAnnotationsValidator />
                 <div class="mb-3">
-                    <label class="form-label">Type:</label>
+                    <label class="form-label" style="margin: 0.55rem; display: block;">Type:</label>
                     <InputSelect @bind-Value="restaurantType" class="form-select">
                         <option value="">Select type...</option>
                         <option value="fastfood">🍟 Fast Food</option>
@@ -30,17 +30,17 @@
                     </InputSelect>
                 </div>
                 <div class="mb-3">
-                    <label class="form-label">Name:</label>
+                    <label class="form-label" style="margin: 0.5rem; display: block;">Name:</label>
                     <InputText @bind-Value="newRestaurant.Name" class="form-control" placeholder="Enter restaurant name" />
                 </div>
                 <div class="mb-3">
-                    <label class="form-label">City:</label>
+                    <label class="form-label" style="margin: 0.5rem; display: block;">City:</label>
                     <InputText @bind-Value="newRestaurant.City" class="form-control" placeholder="Enter city" />
                 </div>
-                <button type="submit" class="btn btn-primary" disabled="@isSubmitting">
+                <button type="submit" class="btn btn-primary" disabled="@isSubmitting" style="margin-top: 1rem;">
                     @if (isSubmitting)
                     {
-                        <span class="spinner" style="width: 20px; height: 20px; border-width: 2px; display: inline-block; margin-right: 0.5rem;"></span>
+                        <span class="spinner" ... ></span>
                     }
                     Add Restaurant
                 </button>
@@ -83,7 +83,7 @@
     <!-- Existing Restaurants -->
     @if (restaurants != null && restaurants.Any())
     {
-        <div class="card mt-5 fade-in" style="animation-delay: 0.2s">
+        <div class="card fade-in" style="margin-top: 2rem;animation-delay: 0.2s">
             <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
                 <h2 class="card-title">🍴 All Restaurants</h2>
                 <button class="btn btn-secondary" @onclick="RefreshRestaurants" style="padding: 0.5rem 1rem; font-size: 0.85rem;">
