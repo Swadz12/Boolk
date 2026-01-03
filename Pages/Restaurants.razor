@@ -27,6 +27,11 @@
                         <option value="fastfood">🍟 Fast Food</option>
                         <option value="studentbar">🍺 Student Bar</option>
                         <option value="premium">⭐ Premium</option>
+                        <option value="asian">🍜 Asian </option>
+                        <option value="burgers">🍔 Burgers</option>
+                        <option value="sushi">🍱 Sushi</option>
+                        <option value="italian">🍕 Italian</option>
+                        <option value="kebab">🫔 Kebab</option>
                     </InputSelect>
                 </div>
                 <div class="mb-3">
@@ -75,6 +80,26 @@
                 <div class="stats-card" style="background: transparent; border: none; padding: 0;">
                     <div class="stats-number" style="font-size: 1.5rem;">@premiumCount</div>
                     <div class="stats-label">Premium</div>
+                </div>
+                <div class="stats-card" style="background: transparent; border: none; padding: 0;">
+                    <div class="stats-number" style="font-size: 1.5rem;">@asianCount</div>
+                    <div class="stats-label"> Asian Restaurants </div>
+                </div>
+                <div class="stats-card" style="background: transparent; border: none; padding: 0;">
+                    <div class="stats-number" style="font-size: 1.5rem;">@burgerCount</div>
+                    <div class="stats-label">Burgers </div>
+                </div>
+                <div class="stats-card" style="background: transparent; border: none; padding: 0;">
+                    <div class="stats-number" style="font-size: 1.5rem;">@kebabCount</div>
+                    <div class="stats-label">Kebab</div>
+                </div>
+                <div class="stats-card" style="background: transparent; border: none; padding: 0;">
+                    <div class="stats-number" style="font-size: 1.5rem;">@italianCount</div>
+                    <div class="stats-label">Italian Restaurant</div>
+                </div>
+                <div class="stats-card" style="background: transparent; border: none; padding: 0;">
+                    <div class="stats-number" style="font-size: 1.5rem;">@sushiCount</div>
+                    <div class="stats-label">Sushi</div>
                 </div>
             </div>
         </div>
@@ -131,6 +156,13 @@
     private int fastFoodCount = 0;
     private int studentBarCount = 0;
     private int premiumCount = 0;
+    private int asianCount = 0;
+    private int burgerCount = 0;
+    private int kebabCount = 0;
+    private int sushiCount = 0;
+    private int italianCount = 0;
+    
+    
 
     protected override async Task OnInitializedAsync()
     {
@@ -146,6 +178,11 @@
             fastFoodCount = restaurants.Count(r => r is FastFoodRestaurant);
             studentBarCount = restaurants.Count(r => r is StudentBar);
             premiumCount = restaurants.Count(r => r is PremiumRestaurant);
+            asianCount = restaurants.Count(r => r is AsianRestaurant);
+            burgerCount =  restaurants.Count(r => r is Burgers);
+            kebabCount = restaurants.Count(r => r is Kebab);
+            sushiCount = restaurants.Count(r => r is Sushi);
+            italianCount = restaurants.Count(r => r is ItalianRestaurant);
         }
         catch (Exception ex)
         {
@@ -196,6 +233,11 @@
             "FastFoodRestaurant" => "🍟 Fast Food",
             "StudentBar" => "🍺 Student Bar",
             "PremiumRestaurant" => "⭐ Premium",
+            "AsianRestaurant" => "🍜 Asian",
+            "Burgers" => "🍔 Burgers",
+            "Sushi" => "🍱 Sushi",
+            "ItalianRestaurant" => "🍕 Italian",
+            "Kebab" => "🫔Kebab",
             _ => restaurant.GetType().Name
         };
     }

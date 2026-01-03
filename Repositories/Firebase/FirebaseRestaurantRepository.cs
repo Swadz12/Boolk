@@ -66,12 +66,18 @@ public class FirebaseRestaurantRepository : IRestaurantRepository
         var name = data.ContainsKey("Name") ? data["Name"].ToString() : "";
         var city = data.ContainsKey("City") ? data["City"].ToString() : "";
         var id = Guid.Parse(doc.Id);
-
+        
         return type switch
         {
             "FastFoodRestaurant" => new FastFoodRestaurant { Id = id, Name = name ?? "", City = city ?? "" },
             "StudentBar" => new StudentBar { Id = id, Name = name ?? "", City = city ?? "" },
             "PremiumRestaurant" => new PremiumRestaurant { Id = id, Name = name ?? "", City = city ?? "" },
+            "AsianRestaurant" => new AsianRestaurant{ Id = id, Name = name ?? "", City = city ?? "" },
+            "Burgers" => new Burgers{ Id = id, Name = name ?? "", City = city ?? "" },
+            "Kebab" => new Kebab{ Id = id, Name = name ?? "", City = city ?? "" }, 
+            "ItalianRestaurant" => new ItalianRestaurant{ Id = id, Name = name ?? "", City = city ?? "" }, 
+            "Sushi" => new Sushi { Id = id, Name = name ?? "", City = city ?? "" },
+            
             _ => null
         };
     }
