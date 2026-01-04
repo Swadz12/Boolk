@@ -21,7 +21,6 @@
                     <InputText @bind-Value="registerModel.Name" class="form-control" placeholder="Enter your name" />
                 </div>
                 
-                
                 <div class="form-group" style="margin-bottom: 1rem;">
                     <label style="margin-top: 0.5rem; margin-bottom: 0.5rem; display: block;">Email</label>
                     <InputText @bind-Value="registerModel.Email" type="email" class="form-control" placeholder="Enter your email" />
@@ -30,9 +29,10 @@
                 <div class="form-group" style="margin-bottom: 1rem;">
                     <label style="margin-top: 0.5rem; margin-bottom: 0.5rem; display: block;">Birth Date</label>
                     <InputDate @bind-Value="registerModel.BirthDate" class="form-control" />
+                    <!-- Opcjonalnie: wyświetlenie błędu tylko pod tym polem -->
+                    <ValidationMessage For="@(() => registerModel.BirthDate)" style="color:red; font-size: 0.8rem;" />
                 </div>
 
-                
                 <div class="form-group" style="margin-bottom: 1rem;">
                     <label style="margin-top: 0.5rem; margin-bottom: 0.5rem; display: block;">Password</label>
                     <InputText @bind-Value="registerModel.Password" type="password" class="form-control" placeholder="Enter your password" />
@@ -96,6 +96,31 @@
         public string Name { get; set; } = "";
 
         [Required(ErrorMessage = "Birth Date is required")]
+        [MinimumAge(13, ErrorMessage = "You must be at least 13 years old to register")]
         public DateTime BirthDate { get; set; } = DateTime.Today;
+    }
+
+    
+    public class MinimumAgeAttribute : ValidationAttribute
+    {
+        private readonly int _minAge;
+
+        public MinimumAgeAttribute(int minAge)
+        {
+            _minAge = minAge;
+        }
+
+        protected override ValidationResult? IsValid(object? value, ValidationContext validationContext)
+        {
+            if (value is DateTime birthDate)
+            {
+                
+                if (birthDate.AddYears(_minAge) > DateTime.Today)
+                {
+                    return new ValidationResult(ErrorMessage ?? $"You must be at least {_minAge} years old.");
+                }
+            }
+            return ValidationResult.Success;
+        }
     }
 }

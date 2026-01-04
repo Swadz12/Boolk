@@ -24,7 +24,7 @@ public class FirebaseRestaurantRepository : IRestaurantRepository
         
         return MapToRestaurant(snapshot);
     }
-
+    
     public async Task<IEnumerable<RestaurantBase>> GetAllAsync()
     {
         var snapshot = await _db.Collection(CollectionName).GetSnapshotAsync();
