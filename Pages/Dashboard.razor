@@ -1,7 +1,9 @@
 @page "/dashboard"
+@implements IDisposable
 @inject IRestaurantRepository RestaurantRepository
 @inject IReviewRepository ReviewRepository
 @inject RestaurantSystemFacade Facade
+@inject RankingObserver Observer
 @using Boolk.Repositories.Interfaces
 
 <PageTitle>Dashboard - Boolk</PageTitle>
@@ -229,8 +231,24 @@
 
     protected override async Task OnInitializedAsync()
     {
+        Observer.OnRankingChanged += HandleRankingUpdate;
         await LoadDashboardData();
         await LoadQuickRanking(activeStrategy);
+    }
+
+    public void Dispose()
+    {
+        Observer.OnRankingChanged -= HandleRankingUpdate;
+    }
+
+    private async void HandleRankingUpdate()
+    {
+        await InvokeAsync(async () => 
+        {
+            await LoadDashboardData();
+            await LoadQuickRanking(activeStrategy);
+            StateHasChanged();
+        });
     }
 
     private async Task LoadDashboardData()

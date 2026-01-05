@@ -6,6 +6,7 @@ namespace Boolk.RankingEngine;
 public class RankingService
 {
     private static RankingService? _instance;
+    
     private readonly List<IObserver> _observers = new();
     private IRankingStrategy? _strategy;
 
@@ -17,6 +18,14 @@ public class RankingService
     {
         _instance ??= new RankingService();
         return _instance;
+    }
+
+    public void NotifyRankingsUpdated()
+    {
+        foreach (var observer in _observers.ToList()) 
+        {
+             observer.Update(null); 
+        }
     }
 
     public void Attach(IObserver observer)
@@ -49,11 +58,6 @@ public class RankingService
 
         var ranked = _strategy.CalculateScore(restaurants, reviews);
         
-        foreach (var restaurant in ranked)
-        {
-            Notify(restaurant);
-        }
-
         return ranked;
     }
 }

@@ -1,9 +1,11 @@
 @page "/reviews"
+@implements IDisposable
 @inject RestaurantService RestaurantService
 @inject IRestaurantRepository RestaurantRepository
 @inject IReviewRepository ReviewRepository
 @using Boolk.Repositories.Interfaces
 @inject UserService UserService
+@inject RankingObserver Observer
 <PageTitle>Reviews - Boolk</PageTitle>
 
 <div class="hero" style="padding: 2rem;">
@@ -211,7 +213,22 @@ else
 
     protected override async Task OnInitializedAsync()
     {
+        Observer.OnRankingChanged += HandleRankingUpdate;
         await LoadData();
+    }
+
+    public void Dispose()
+    {
+        Observer.OnRankingChanged -= HandleRankingUpdate;
+    }
+
+    private async void HandleRankingUpdate()
+    {
+        await InvokeAsync(async () => 
+        {
+            await LoadData();
+            StateHasChanged();
+        });
     }
 
     private async Task LoadData()

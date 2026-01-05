@@ -1,6 +1,8 @@
 @page "/restaurants"
+@implements IDisposable
 @inject RestaurantService RestaurantService
 @inject IRestaurantRepository RestaurantRepository
+@inject RankingObserver Observer
 
 <PageTitle>Restaurants - Boolk</PageTitle>
 
@@ -168,7 +170,22 @@
 
     protected override async Task OnInitializedAsync()
     {
+        Observer.OnRankingChanged += HandleRankingUpdate;
         await LoadRestaurants();
+    }
+
+    public void Dispose()
+    {
+        Observer.OnRankingChanged -= HandleRankingUpdate;
+    }
+
+    private async void HandleRankingUpdate()
+    {
+        await InvokeAsync(async () => 
+        {
+            await LoadRestaurants();
+            StateHasChanged();
+        });
     }
 
     private async Task LoadRestaurants()
