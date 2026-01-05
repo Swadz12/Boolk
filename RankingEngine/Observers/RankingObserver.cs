@@ -3,11 +3,26 @@ using Boolk.RankingEngine.Interfaces;
 
 namespace Boolk.RankingEngine.Observers;
 
-public class RankingObserver : IObserver
+public class RankingObserver : IObserver, IDisposable
 {
-    public void Update(RestaurantBase restaurant)
+    public event Action? OnRankingChanged;
+    private readonly RankingService _rankingService;
+
+    public RankingObserver(RankingService rankingService)
     {
-        Console.WriteLine($"Ranking updated for restaurant: {restaurant.Name} in {restaurant.City}");
+        _rankingService = rankingService;
+        
+        _rankingService.Attach(this);
+    }
+
+    public void Update(RestaurantBase? restaurant)
+    {
+        OnRankingChanged?.Invoke();
+    }
+
+    public void Dispose()
+    {
+        _rankingService.Detach(this);
     }
 }
 

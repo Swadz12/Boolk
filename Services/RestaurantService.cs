@@ -28,12 +28,19 @@ public class RestaurantService
     public async Task<RestaurantBase> CreateRestaurant(string type, string name, string city)
     {
         var restaurant = _factory.Create(type, name, city);
-        return await _restaurantRepo.CreateAsync(restaurant);
+        var createdRestaurant = await _restaurantRepo.CreateAsync(restaurant);
+
+        _rankingService.NotifyRankingsUpdated();
+        return createdRestaurant;
     }
 
     public async Task<Review> AddReview(Review review)
     {
-        return await _reviewRepo.CreateAsync(review);
+        var createdReview = await _reviewRepo.CreateAsync(review);
+        
+        _rankingService.NotifyRankingsUpdated();
+        
+        return createdReview;
     }
 
     public async Task<List<RestaurantBase>> GetRankedRestaurants(IRankingStrategy strategy)

@@ -1,8 +1,7 @@
 @page "/"
+@implements IDisposable
 @inject RestaurantSystemFacade Facade
-@inject RankingService RankingService
 @inject RankingObserver Observer
-@inject RestaurantService RestaurantService
 
 <PageTitle>Home - Boolk</PageTitle>
 
@@ -102,7 +101,22 @@
 
     protected override void OnInitialized()
     {
-        RankingService.Attach(Observer);
+        
+        Observer.OnRankingChanged += HandleRankingUpdate;
+    }
+
+    public void Dispose()
+    {
+        Observer.OnRankingChanged -= HandleRankingUpdate;
+    }
+
+    private async void HandleRankingUpdate()
+    {
+        await InvokeAsync(async () => 
+        {
+            await LoadRankedRestaurants();
+            StateHasChanged();
+        });
     }
 
     private async Task LoadRankedRestaurants()

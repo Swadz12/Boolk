@@ -4,6 +4,6 @@ namespace Boolk.RankingEngine.Interfaces;
 
 public interface IObserver
 {
-    void Update(RestaurantBase restaurant);
+    void Update(RestaurantBase? restaurant);
 }
 
