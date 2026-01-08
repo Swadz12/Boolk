@@ -317,6 +317,6 @@ else
     private string GetRestaurantName(Guid restaurantId)
     {
         var restaurant = restaurants?.FirstOrDefault(r => r.Id == restaurantId);
-        return restaurant != null ? $"{restaurant.Name} - {restaurant.City}" : "Unknown Restaurant";
+        return restaurant != null ? $"📍{restaurant.Name} - {restaurant.City}" : "Unknown Restaurant";
     }
 }

@@ -43,92 +43,28 @@
                 <h2 class="card-title">🍴 Restaurant Types</h2>
             </div>
             <div style="padding: 1rem;">
-                <div style="margin-bottom: 1.5rem;">
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-                        <span>🍟 Fast Food</span>
-                        <span style="font-weight: 600;">@fastFoodCount</span>
-                    </div>
-                    <div style="background: var(--glass-bg); border-radius: 10px; height: 12px; overflow: hidden;">
-                        <div style="background: var(--primary-gradient); height: 100%; width: @(GetPercentage(fastFoodCount, totalRestaurants))%; transition: width 0.5s ease;"></div>
-                    </div>
-                </div>
-                <div style="margin-bottom: 1.5rem;">
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-                        <span>🍺 Student Bar</span>
-                        <span style="font-weight: 600;">@studentBarCount</span>
-                    </div>
-                    <div style="background: var(--glass-bg); border-radius: 10px; height: 12px; overflow: hidden;">
-                        <div style="background: var(--secondary-gradient); height: 100%; width: @(GetPercentage(studentBarCount, totalRestaurants))%; transition: width 0.5s ease;"></div>
-                    </div>
-                </div>
-                <div>
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-                        <span>⭐ Premium</span>
-                        <span style="font-weight: 600;">@premiumCount</span>
-                    </div>
-                    <div style="background: var(--glass-bg); border-radius: 10px; height: 12px; overflow: hidden;">
-                        <div style="background: var(--success-gradient); height: 100%; width: @(GetPercentage(premiumCount, totalRestaurants))%; transition: width 0.5s ease;"></div>
-                    </div>
-                </div>
-                
+                @foreach (var stat in _restaurantTypeStats.OrderByDescending(x => x.Count))
+                {
+                    <div style="margin-bottom: 1rem;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem;">
+                            <span>@stat.Label</span>
+                            <span style="font-weight: 600;">@stat.Count</span>
+                        </div>
 
-                <!-- Asian -->
-                <div style="margin-bottom: 1rem;">
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem;">
-                        <span>🍜 Asian</span>
-                        <span style="font-weight: 600;">@asianCount</span>
+                        <div style="background: var(--glass-bg); border-radius: 10px; height: @(stat.BarHeight)px; overflow: hidden;">
+                            <div style="
+                    background: @stat.Gradient;
+                    height: 100%;
+                    width: @(GetPercentage(stat.Count, totalRestaurants))%;
+                    transition: width 0.5s ease;">
+                            </div>
+                        </div>
                     </div>
-                    <div style="background: var(--glass-bg); border-radius: 10px; height: 8px; overflow: hidden;">
-                        <div style="background: var(--primary-gradient); height: 100%; width: @(GetPercentage(asianCount, totalRestaurants))%; transition: width 0.5s ease;"></div>
-                    </div>
-                </div>
-
-                <!-- Burgers -->
-                <div style="margin-bottom: 1rem;">
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem;">
-                        <span>🍔 Burgers</span>
-                        <span style="font-weight: 600;">@burgersCount</span>
-                    </div>
-                    <div style="background: var(--glass-bg); border-radius: 10px; height: 8px; overflow: hidden;">
-                        <div style="background: var(--secondary-gradient); height: 100%; width: @(GetPercentage(burgersCount, totalRestaurants))%; transition: width 0.5s ease;"></div>
-                    </div>
-                </div>
-
-                <!-- Sushi -->
-                <div style="margin-bottom: 1rem;">
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem;">
-                        <span>🍱 Sushi</span>
-                        <span style="font-weight: 600;">@sushiCount</span>
-                    </div>
-                    <div style="background: var(--glass-bg); border-radius: 10px; height: 8px; overflow: hidden;">
-                        <div style="background: var(--success-gradient); height: 100%; width: @(GetPercentage(sushiCount, totalRestaurants))%; transition: width 0.5s ease;"></div>
-                    </div>
-                </div>
-
-                <!-- Italian -->
-                <div style="margin-bottom: 1rem;">
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem;">
-                        <span>🍕 Italian</span>
-                        <span style="font-weight: 600;">@italianCount</span>
-                    </div>
-                    <div style="background: var(--glass-bg); border-radius: 10px; height: 8px; overflow: hidden;">
-                        <div style="background: var(--primary-gradient); height: 100%; width: @(GetPercentage(italianCount, totalRestaurants))%; transition: width 0.5s ease;"></div>
-                    </div>
-                </div>
-
-                <!-- Kebab -->
-                <div>
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem;">
-                        <span>🫔 Kebab</span>
-                        <span style="font-weight: 600;">@kebabCount</span>
-                    </div>
-                    <div style="background: var(--glass-bg); border-radius: 10px; height: 8px; overflow: hidden;">
-                        <div style="background: var(--secondary-gradient); height: 100%; width: @(GetPercentage(kebabCount, totalRestaurants))%; transition: width 0.5s ease;"></div>
-                    </div>
-                </div>
-
+                }
             </div>
-        </div>
+        
+    </div>
+
 
         <!-- Top Restaurants by Reviews -->
         <div class="card fade-in" style="margin-top: 2rem;animation-delay: 0.2s">
@@ -206,22 +142,18 @@
             }
         </div>
     </div>
-</div>
+    </div>
+
 
 @code {
     private int totalRestaurants = 0;
     private int totalReviews = 0;
     private double averagePrice = 0;
     private decimal averageSatiety = 0;
-    private int fastFoodCount = 0;
-    private int studentBarCount = 0;
-    private int premiumCount = 0;
-    private int asianCount = 0;
-    private int italianCount = 0;
-    private int kebabCount = 0;
-    private int sushiCount = 0;
-    private int burgersCount = 0;
     
+    
+    private List<RestaurantTypeStat> _restaurantTypeStats = new();
+
     private List<RestaurantBase>? topReviewedRestaurants;
     private List<RestaurantBase>? quickRankings;
     private bool isLoading = false;
@@ -267,14 +199,18 @@
                 averageSatiety = allReviews.Average(r => (decimal)r.SatietyLevel);
             }
 
-            fastFoodCount = allRestaurants.Count(r => r is FastFoodRestaurant);
-            studentBarCount = allRestaurants.Count(r => r is StudentBar);
-            premiumCount = allRestaurants.Count(r => r is PremiumRestaurant);
-            asianCount = allRestaurants.Count(r => r is AsianRestaurant);
-            burgersCount =  allRestaurants.Count(r => r is Burgers);
-            kebabCount =allRestaurants.Count(r => r is Kebab);
-            sushiCount = allRestaurants.Count(r => r is Sushi);
-            italianCount = allRestaurants.Count(r => r is ItalianRestaurant);
+            _restaurantTypeStats = new()
+            {
+                new() { Label = "🍟 Fast Food", Count = allRestaurants.Count(r => r is FastFoodRestaurant), Gradient = "var(--primary-gradient)",BarHeight = 8},
+                new() { Label = "🍺 Student Bar", Count = allRestaurants.Count(r => r is StudentBar), Gradient = "var(--secondary-gradient)",BarHeight = 8 },
+                new() { Label = "⭐ Premium", Count = allRestaurants.Count(r => r is PremiumRestaurant), Gradient = "var(--success-gradient)", BarHeight = 8},
+
+                new() { Label = "🍜 Asian", Count = allRestaurants.Count(r => r is AsianRestaurant), Gradient = "var(--primary-gradient)",BarHeight = 8 },
+                new() { Label = "🍔 Burgers", Count = allRestaurants.Count(r => r is Burgers), Gradient = "var(--secondary-gradient)",BarHeight = 8 },
+                new() { Label = "🍱 Sushi", Count = allRestaurants.Count(r => r is Sushi), Gradient = "var(--success-gradient)",BarHeight = 8  },
+                new() { Label = "🍕 Italian", Count = allRestaurants.Count(r => r is ItalianRestaurant), Gradient = "var(--primary-gradient)",BarHeight = 8  },
+                new() { Label = "🫔 Kebab", Count = allRestaurants.Count(r => r is Kebab), Gradient = "var(--secondary-gradient)",BarHeight = 8}
+            };
 
             // Get top reviewed restaurants
             var reviewCounts = allReviews
@@ -363,5 +299,13 @@
             _ => ""
         };
     }
+    private class RestaurantTypeStat
+    {
+        public string Label { get; init; } = "";
+        public int Count { get; init; }
+        public string Gradient { get; init; } = "";
+        public int BarHeight { get; init; } = 8;
+    }
+
 }
 
