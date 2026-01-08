@@ -201,15 +201,15 @@
 
             _restaurantTypeStats = new()
             {
-                new() { Label = "🍟 Fast Food", Count = allRestaurants.Count(r => r is FastFoodRestaurant), Gradient = "var(--primary-gradient)",  },
-                new() { Label = "🍺 Student Bar", Count = allRestaurants.Count(r => r is StudentBar), Gradient = "var(--secondary-gradient)", },
-                new() { Label = "⭐ Premium", Count = allRestaurants.Count(r => r is PremiumRestaurant), Gradient = "var(--success-gradient)", },
+                new() { Label = "🍟 Fast Food", Count = allRestaurants.Count(r => r is FastFoodRestaurant), Gradient = "var(--primary-gradient)",BarHeight = 8},
+                new() { Label = "🍺 Student Bar", Count = allRestaurants.Count(r => r is StudentBar), Gradient = "var(--secondary-gradient)",BarHeight = 8 },
+                new() { Label = "⭐ Premium", Count = allRestaurants.Count(r => r is PremiumRestaurant), Gradient = "var(--success-gradient)", BarHeight = 8},
 
-                new() { Label = "🍜 Asian", Count = allRestaurants.Count(r => r is AsianRestaurant), Gradient = "var(--primary-gradient)", BarHeight = 8 },
-                new() { Label = "🍔 Burgers", Count = allRestaurants.Count(r => r is Burgers), Gradient = "var(--secondary-gradient)", BarHeight = 8 },
-                new() { Label = "🍱 Sushi", Count = allRestaurants.Count(r => r is Sushi), Gradient = "var(--success-gradient)", BarHeight = 8 },
-                new() { Label = "🍕 Italian", Count = allRestaurants.Count(r => r is ItalianRestaurant), Gradient = "var(--primary-gradient)", BarHeight = 8 },
-                new() { Label = "🫔 Kebab", Count = allRestaurants.Count(r => r is Kebab), Gradient = "var(--secondary-gradient)", BarHeight = 8 }
+                new() { Label = "🍜 Asian", Count = allRestaurants.Count(r => r is AsianRestaurant), Gradient = "var(--primary-gradient)",BarHeight = 8 },
+                new() { Label = "🍔 Burgers", Count = allRestaurants.Count(r => r is Burgers), Gradient = "var(--secondary-gradient)",BarHeight = 8 },
+                new() { Label = "🍱 Sushi", Count = allRestaurants.Count(r => r is Sushi), Gradient = "var(--success-gradient)",BarHeight = 8  },
+                new() { Label = "🍕 Italian", Count = allRestaurants.Count(r => r is ItalianRestaurant), Gradient = "var(--primary-gradient)",BarHeight = 8  },
+                new() { Label = "🫔 Kebab", Count = allRestaurants.Count(r => r is Kebab), Gradient = "var(--secondary-gradient)",BarHeight = 8}
             };
 
             // Get top reviewed restaurants
