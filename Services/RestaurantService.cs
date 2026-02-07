@@ -47,10 +47,17 @@ public class RestaurantService
     {
         _rankingService.SetStrategy(strategy);
         
-        var restaurants = (await _restaurantRepo.GetAllAsync()).ToList();
+        // TODO: Ranking requires all data for now. Future refactor: move ranking to DB or Cloud Functions.
+        var restaurants = (await _restaurantRepo.GetAllAsync(0, 10000)).ToList();
         var reviews = (await _reviewRepo.GetAllAsync()).ToList();
         
         return _rankingService.GetTopRestaurants(restaurants, reviews);
+    }
+
+    public async Task<List<RestaurantBase>> GetRestaurants(int page, int pageSize)
+    {
+        var skip = (page - 1) * pageSize;
+        return (await _restaurantRepo.GetAllAsync(skip, pageSize)).ToList();
     }
 }
 

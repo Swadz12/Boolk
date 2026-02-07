@@ -25,4 +25,9 @@ public class RestaurantSystemFacade
     {
         return await _resService.AddReview(review);
     }
+
+    public async Task<List<RestaurantBase>> GetRestaurantsAsync(int page, int pageSize)
+    {
+        return await _resService.GetRestaurants(page, pageSize);
+    }
 }

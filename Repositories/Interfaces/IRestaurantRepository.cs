@@ -5,7 +5,7 @@ namespace Boolk.Repositories.Interfaces;
 public interface IRestaurantRepository
 {
     Task<RestaurantBase?> GetByIdAsync(Guid id);
-    Task<IEnumerable<RestaurantBase>> GetAllAsync();
+    Task<IEnumerable<RestaurantBase>> GetAllAsync(int skip, int take);
     Task<RestaurantBase> CreateAsync(RestaurantBase restaurant);
     Task UpdateAsync(RestaurantBase restaurant);
     Task DeleteAsync(Guid id);

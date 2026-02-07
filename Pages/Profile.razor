@@ -165,7 +165,7 @@ else
             if (UserService.CurrentUser != null)
             {
                 userReviews = (await ReviewRepository.GetByUserIdAsync(UserService.CurrentUser.Id)).ToList();
-                restaurants = (await RestaurantRepository.GetAllAsync()).ToList();
+                restaurants = (await RestaurantRepository.GetAllAsync(0, 10000)).ToList();
             }
 
             StateHasChanged();

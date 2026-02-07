@@ -31,7 +31,7 @@ builder.Services.AddScoped<IUserRepository, FirebaseUserRepository>();
 
 builder.Services.AddSingleton<RestaurantFactory>();
 
-builder.Services.AddSingleton<RankingService>(provider => RankingService.GetInstance());
+builder.Services.AddSingleton<RankingService>();
 
 builder.Services.AddScoped<RankingObserver>();
 

@@ -5,19 +5,11 @@ namespace Boolk.RankingEngine;
 
 public class RankingService
 {
-    private static RankingService? _instance;
-    
     private readonly List<IObserver> _observers = new();
     private IRankingStrategy? _strategy;
 
-    private RankingService()
+    public RankingService()
     {
-    }
-
-    public static RankingService GetInstance()
-    {
-        _instance ??= new RankingService();
-        return _instance;
     }
 
     public void NotifyRankingsUpdated()

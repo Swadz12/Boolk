@@ -187,7 +187,7 @@
     {
         try
         {
-            allRestaurants = (await RestaurantRepository.GetAllAsync()).ToList();
+            allRestaurants = (await RestaurantRepository.GetAllAsync(0, 10000)).ToList();
             allReviews = (await ReviewRepository.GetAllAsync()).ToList();
 
             totalRestaurants = allRestaurants.Count;

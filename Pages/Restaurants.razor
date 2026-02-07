@@ -1,7 +1,9 @@
 @page "/restaurants"
+@using Boolk.Facade
+@using Boolk.ViewModels
 @implements IDisposable
 @inject RestaurantService RestaurantService
-@inject IRestaurantRepository RestaurantRepository
+@inject RestaurantSystemFacade Facade
 @inject RankingObserver Observer
 
 <PageTitle>Restaurants - Boolk</PageTitle>
@@ -70,41 +72,10 @@
             </div>
             <div class="stats-card" style="background: transparent; border: none; padding: 0;">
                 <div class="stats-number">@totalRestaurants</div>
-                <div class="stats-label">Total Restaurants</div>
+                <div class="stats-label">Total Restaurants (Loaded)</div>
             </div>
-            <div style="margin-top: 1.5rem; display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;">
-                <div class="stats-card" style="background: transparent; border: none; padding: 0;">
-                    <div class="stats-number" style="font-size: 1.5rem;">@fastFoodCount</div>
-                    <div class="stats-label">Fast Food</div>
-                </div>
-                <div class="stats-card" style="background: transparent; border: none; padding: 0;">
-                    <div class="stats-number" style="font-size: 1.5rem;">@studentBarCount</div>
-                    <div class="stats-label">Student Bars</div>
-                </div>
-                <div class="stats-card" style="background: transparent; border: none; padding: 0;">
-                    <div class="stats-number" style="font-size: 1.5rem;">@premiumCount</div>
-                    <div class="stats-label">Premium</div>
-                </div>
-                <div class="stats-card" style="background: transparent; border: none; padding: 0;">
-                    <div class="stats-number" style="font-size: 1.5rem;">@asianCount</div>
-                    <div class="stats-label"> Asian Restaurants </div>
-                </div>
-                <div class="stats-card" style="background: transparent; border: none; padding: 0;">
-                    <div class="stats-number" style="font-size: 1.5rem;">@burgerCount</div>
-                    <div class="stats-label">Burgers </div>
-                </div>
-                <div class="stats-card" style="background: transparent; border: none; padding: 0;">
-                    <div class="stats-number" style="font-size: 1.5rem;">@kebabCount</div>
-                    <div class="stats-label">Kebab</div>
-                </div>
-                <div class="stats-card" style="background: transparent; border: none; padding: 0;">
-                    <div class="stats-number" style="font-size: 1.5rem;">@italianCount</div>
-                    <div class="stats-label">Italian Restaurant</div>
-                </div>
-                <div class="stats-card" style="background: transparent; border: none; padding: 0;">
-                    <div class="stats-number" style="font-size: 1.5rem;">@sushiCount</div>
-                    <div class="stats-label">Sushi</div>
-                </div>
+             <div style="margin-top: 1rem;">
+                <p>Statistics are currently limited to loaded items due to pagination.</p>
             </div>
         </div>
     </div>
@@ -115,9 +86,18 @@
         <div class="card fade-in" style="margin-top: 2rem;animation-delay: 0.2s">
             <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
                 <h2 class="card-title">🍴 All Restaurants</h2>
-                <button class="btn btn-secondary" @onclick="RefreshRestaurants" style="padding: 0.5rem 1rem; font-size: 0.85rem;">
-                    🔄 Refresh
-                </button>
+                <div>
+                     <button class="btn btn-secondary" @onclick="PrevPage" disabled="@(currentPage == 1)" style="padding: 0.5rem 1rem; margin-right: 0.5rem;">
+                        ⬅️ Prev
+                    </button>
+                    <span style="margin: 0 1rem;">Page @currentPage</span>
+                    <button class="btn btn-secondary" @onclick="NextPage" style="padding: 0.5rem 1rem;">
+                        Next ➡️
+                    </button>
+                    <button class="btn btn-secondary" @onclick="RefreshRestaurants" style="padding: 0.5rem 1rem; font-size: 0.85rem; margin-left: 1rem;">
+                        🔄 Refresh
+                    </button>
+                </div>
             </div>
             <div class="grid grid-3" style="padding: 1rem;">
                 @foreach (var (restaurant, index) in restaurants.Select((r, i) => (r, i)))
@@ -126,7 +106,7 @@
                         <div class="restaurant-card fade-in" style="@($"animation-delay: {index * 0.05}s")">
                             <h3 class="restaurant-name">@restaurant.Name</h3>
                             <p class="restaurant-city">📍 @restaurant.City</p>
-                            <span class="restaurant-type">@GetRestaurantType(restaurant)</span>
+                            <span class="restaurant-type">@restaurant.DisplayIcon @restaurant.DisplayName</span>
                             <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--glass-border);">
                                 <small style="color: var(--text-secondary);">ID: @restaurant.Id.ToString().Substring(0, 8)...</small>
                             </div>
@@ -139,11 +119,16 @@
     else if (restaurants != null && !restaurants.Any())
     {
         <div class="card mt-5 fade-in" style="animation-delay: 0.2s">
+             <div class="card-header" style="display: flex; justify-content: flex-end;">
+                 <button class="btn btn-secondary" @onclick="PrevPage" disabled="@(currentPage == 1)" style="padding: 0.5rem 1rem; margin-right: 0.5rem;">
+                        ⬅️ Prev
+                 </button>
+            </div>
             <div style="text-align: center; padding: 3rem;">
                 <div style="font-size: 4rem; margin-bottom: 1rem;">🍽️</div>
-                <h3 style="margin-bottom: 1rem;">No restaurants yet</h3>
+                <h3 style="margin-bottom: 1rem;">No restaurants found</h3>
                 <p style="color: var(--text-secondary);">
-                    Add your first restaurant using the form above!
+                    Try adding one or going back to the previous page.
                 </p>
             </div>
         </div>
@@ -155,18 +140,12 @@
     private string restaurantType = "fastfood";
     private string message = "";
     private bool isSubmitting = false;
-    private List<RestaurantBase>? restaurants;
+    private List<RestaurantViewModel>? restaurants;
+    
+    // Pagination state
+    private int currentPage = 1;
+    private int pageSize = 6;
     private int totalRestaurants = 0;
-    private int fastFoodCount = 0;
-    private int studentBarCount = 0;
-    private int premiumCount = 0;
-    private int asianCount = 0;
-    private int burgerCount = 0;
-    private int kebabCount = 0;
-    private int sushiCount = 0;
-    private int italianCount = 0;
-    
-    
 
     protected override async Task OnInitializedAsync()
     {
@@ -192,16 +171,9 @@
     {
         try
         {
-            restaurants = (await RestaurantRepository.GetAllAsync()).ToList();
-            totalRestaurants = restaurants.Count;
-            fastFoodCount = restaurants.Count(r => r is FastFoodRestaurant);
-            studentBarCount = restaurants.Count(r => r is StudentBar);
-            premiumCount = restaurants.Count(r => r is PremiumRestaurant);
-            asianCount = restaurants.Count(r => r is AsianRestaurant);
-            burgerCount =  restaurants.Count(r => r is Burgers);
-            kebabCount = restaurants.Count(r => r is Kebab);
-            sushiCount = restaurants.Count(r => r is Sushi);
-            italianCount = restaurants.Count(r => r is ItalianRestaurant);
+            var data = await Facade.GetRestaurantsAsync(currentPage, pageSize);
+            restaurants = data.Select(r => RestaurantViewModel.FromModel(r)).ToList();
+            totalRestaurants = restaurants.Count; // This is just page count, full count requires new API
         }
         catch (Exception ex)
         {
@@ -222,6 +194,7 @@
             newRestaurant = new FastFoodRestaurant();
             restaurantType = "fastfood";
             
+            // Go to first page or refresh current
             await LoadRestaurants();
             
             // Clear message after 3 seconds
@@ -244,20 +217,19 @@
         await LoadRestaurants();
         StateHasChanged();
     }
-
-    private string GetRestaurantType(RestaurantBase restaurant)
+    
+    private async Task NextPage()
     {
-        return restaurant.GetType().Name switch
+        currentPage++;
+        await LoadRestaurants();
+    }
+
+    private async Task PrevPage()
+    {
+        if (currentPage > 1)
         {
-            "FastFoodRestaurant" => "🍟 Fast Food",
-            "StudentBar" => "🍺 Student Bar",
-            "PremiumRestaurant" => "⭐ Premium",
-            "AsianRestaurant" => "🍜 Asian",
-            "Burgers" => "🍔 Burgers",
-            "Sushi" => "🍱 Sushi",
-            "ItalianRestaurant" => "🍕 Italian",
-            "Kebab" => "🫔Kebab",
-            _ => restaurant.GetType().Name
-        };
+            currentPage--;
+            await LoadRestaurants();
+        }
     }
 }
