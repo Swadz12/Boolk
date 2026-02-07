@@ -1,0 +1,58 @@
+classDiagram
+    %% Domain Layer
+    class RestaurantBase {
+        +Guid Id
+        +string Name
+        +string City
+        +bool HasGarden
+        +string DisplayName
+        +string DisplayIcon
+    }
+    class Kebab {
+        +bool IsSpicy
+    }
+    class Pizza {
+        +bool IsThinCrust
+    }
+    class RestaurantFactory {
+        +CreateRestaurant(type, name, city) RestaurantBase
+    }
+    
+    RestaurantBase <|-- Kebab
+    RestaurantBase <|-- Pizza
+    RestaurantFactory ..> RestaurantBase : Creates
+
+    %% Application Layer
+    class IRankingStrategy {
+        +string Name
+        +Rank(restaurants, reviews)
+    }
+    class BestValueStrategy
+    class CheapestStrategy
+    class MostFillingStrategy
+    
+    IRankingStrategy <|.. BestValueStrategy
+    IRankingStrategy <|.. CheapestStrategy
+    IRankingStrategy <|.. MostFillingStrategy
+
+    class IRankingService {
+        +GetRankedRestaurantsAsync(strategyName)
+        +GetAvailableStrategies()
+    }
+    
+    %% Infrastructure Layer
+    class RankingService {
+        -IUnitOfWork _unitOfWork
+        -Dictionary _strategies
+        +GetRankedRestaurantsAsync()
+    }
+    
+    IRankingService <|.. RankingService
+    RankingService o-- IRankingStrategy : Uses
+
+    class FirebaseUnitOfWork {
+        +IRestaurantRepository Restaurants
+        +IReviewRepository Reviews
+    }
+    
+    RankingService --> FirebaseUnitOfWork : Uses

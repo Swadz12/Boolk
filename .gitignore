@@ -41,3 +41,12 @@ Thumbs.db
 ehthumbs.db
 Desktop.ini
 
+
+# Agent System
+.agent/reports/
+.agent/research/prototypes/
+.agent/features/
+.agent/research/
+!.agent/workflows/
+!.agent/features/
+!.agent/research/

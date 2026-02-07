@@ -1,0 +1,207 @@
+@page "/profile"
+@inject AuthApiClient AuthClient
+@inject ReviewApiClient ReviewClient
+@inject RestaurantApiClient RestaurantClient
+@inject NavigationManager Nav
+@inject IJSRuntime JsRuntime
+@inject JwtAuthenticationStateProvider AuthStateProvider
+
+<PageTitle>Profile - Boolk</PageTitle>
+
+@if (!isInitialized)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <!-- HERO -->
+    <div class="hero">
+        <div class="hero-content">
+            @if (currentUser != null)
+            {
+                <h1>👋 Welcome back, @currentUser.Name!</h1>
+                <p>Manage your account and reviews</p>
+            }
+            else
+            {
+                <h1>👤 Your Profile</h1>
+                <p>Manage your account and authentication</p>
+            }
+           
+
+            @if (currentUser == null)
+            {
+                <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+                    <a href="/login" class="btn btn-primary">🔐 Login</a>
+                    <a href="/register" class="btn btn-secondary">✨ Register</a>
+                </div>
+            }
+            else
+            {
+                <button class="btn btn-danger" @onclick="Logout">
+                    🚪 Logout
+                </button>
+            }
+        </div>
+    </div>
+
+    <div class="container mt-5">
+
+        @if (currentUser == null)
+        {
+            <!-- AUTH OPTIONS -->
+            <div class="card mb-5">
+                <div class="card-header">
+                    <h2 class="card-title">Authentication</h2>
+                </div>
+
+                <div class="grid grid-2" style="padding: 1.5rem;">
+
+                    <!-- EMAIL AUTH -->
+                    <div class="restaurant-card">
+                        <h3>📧 Email & Password</h3>
+                        <p style="color: var(--text-secondary); margin-bottom: 1rem;">
+                            Login or register using your email address.
+                        </p>
+                        <a href="/login" class="btn btn-primary">Login</a>
+                        <a href="/register" class="btn btn-secondary" style="margin-left: .5rem;">
+                            Register
+                        </a>
+                    </div>
+
+                    <!-- GOOGLE AUTH -->
+                    <div class="restaurant-card">
+                        <h3>🔵 Google Sign-In</h3>
+                        <p style="color: var(--text-secondary); margin-bottom: 1rem;">
+                            Sign in quickly using your Google account.
+                        </p>
+
+                        <!-- PLACEHOLDER -->
+                        <button class="btn btn-outline" disabled>
+                            Continue with Google
+                        </button>
+
+                        <small style="display: block; margin-top: .5rem; color: var(--text-secondary);">
+                            (Coming soon)
+                        </small>
+                    </div>
+                </div>
+            </div>
+        }
+        else
+        {
+            <!-- USER INFO -->
+            <div class="card mb-5" style="margin-bottom: 2rem">
+                <div class="card-header">
+                    <h2 class="card-title">Account Details</h2>
+                </div>
+
+                <div class="grid grid-2" style="padding: 1.5rem; align-items: center;">
+                    <div>
+                        <h3>👤Name: @currentUser.Name</h3>
+                        <h3>🗓️Birth Date: @currentUser.BirthDate.ToLocalTime().ToString("MM/dd/yyyy")</h3>
+                        <h3>✉️Email: @currentUser.Email</h3>
+                    </div>
+
+                    
+                </div>
+            </div>
+
+            <!-- USER REVIEWS -->
+            @if (userReviews != null && userReviews.Any())
+            {
+                <div class="card mb-5" style="margin-top: 2rem">
+                    <div class="card-header">
+                        <h2 class="card-title">💬 Your Reviews</h2>
+                    </div>
+                    <div style="padding: 1rem;">
+                        @foreach (var review in userReviews)
+                        {
+                            <div class="review-card mb-3">
+                                <div style="display:flex; justify-content:space-between; align-items:center;">
+                                    <div>
+                                        <strong>@GetRestaurantName(review.RestaurantId)</strong>
+                                        <div style="font-size:0.8rem; color: var(--text-secondary);">
+                                            Review ID: @review.Id.ToString().Substring(0,8)...
+                                        </div>
+                                        <div style="font-size:0.8rem; color: var(--text-secondary);">
+                                            @review.CreatedAt.ToLocalTime().ToString("dd MMM yyyy HH:mm")
+                                        </div>
+                                    </div>
+                                    <button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteReview(review.Id)">
+                                        🗑 Delete
+                                    </button>
+                                </div>
+                                <div>
+                                    <span>€@review.Price.ToString("F2")</span> | Satiety: @review.SatietyLevel/10
+                                </div>
+                                @if (!string.IsNullOrEmpty(review.Comment))
+                                {
+                                    <p>@review.Comment</p>
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        }
+    </div>
+}
+
+@code {
+    private bool isInitialized = false;
+    private bool firstRenderDone = false;
+    private UserDto? currentUser;
+    private List<ReviewDto>? userReviews;
+    private List<RestaurantDto>? restaurants;
+    
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && !firstRenderDone)
+        {
+            firstRenderDone = true;
+
+            // Get current user from API
+            currentUser = await AuthClient.GetCurrentUserAsync();
+            isInitialized = true;
+
+            if (currentUser != null)
+            {
+                userReviews = (await ReviewClient.GetByUserAsync(currentUser.Id))?.ToList();
+                var result = await RestaurantClient.GetAllAsync(1, 1000);
+                restaurants = result?.Items.ToList();
+            }
+
+            StateHasChanged();
+        }
+    }
+
+    private async Task Logout()
+    {
+        await AuthClient.LogoutAsync();
+        AuthStateProvider.NotifyAuthenticationStateChanged();
+        Nav.NavigateTo("/");
+    }
+
+    private async Task DeleteReview(Guid reviewId)
+    {
+        bool confirmed = await JsRuntime.InvokeAsync<bool>("confirm", "Are you sure you want to delete this review?");
+        if (!confirmed) return;
+
+        await ReviewClient.DeleteAsync(reviewId);
+
+        if (currentUser != null)
+        {
+            userReviews = (await ReviewClient.GetByUserAsync(currentUser.Id))?.ToList();
+        }
+
+        StateHasChanged();
+    }
+
+    private string GetRestaurantName(Guid restaurantId)
+    {
+        var restaurant = restaurants?.FirstOrDefault(r => r.Id == restaurantId);
+        return restaurant != null ? $"{restaurant.Name} - {restaurant.City}" : "Unknown Restaurant";
+    }
+}

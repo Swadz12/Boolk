@@ -1,0 +1,97 @@
+extern alias BoolkClient;
+using Blazored.LocalStorage;
+using Boolk.Application.DTOs;
+using BoolkClient::Boolk.Client.ApiClients;
+using FluentAssertions;
+using Moq;
+using Moq.Protected;
+using System.Net;
+using System.Text.Json;
+using Xunit;
+
+namespace Boolk.Tests.Client;
+
+public class AuthApiClientTests
+{
+    private readonly Mock<HttpMessageHandler> _mockHttpMessageHandler;
+    private readonly Mock<ILocalStorageService> _mockLocalStorage;
+    private readonly AuthApiClient _client;
+
+    public AuthApiClientTests()
+    {
+        _mockHttpMessageHandler = new Mock<HttpMessageHandler>();
+        _mockLocalStorage = new Mock<ILocalStorageService>();
+        
+        var httpClient = new HttpClient(_mockHttpMessageHandler.Object)
+        {
+            BaseAddress = new Uri("http://localhost")
+        };
+
+        _client = new AuthApiClient(httpClient, _mockLocalStorage.Object);
+    }
+
+    [Fact]
+    public async Task LoginAsync_WithValidCredentials_ShouldReturnSuccessAndStoreToken()
+    {
+        // Arrange
+        var authResponse = new AuthResponse { Success = true, Token = "fake-jwt-token" };
+        var jsonResponse = JsonSerializer.Serialize(authResponse);
+
+        _mockHttpMessageHandler
+            .Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>()
+            )
+            .ReturnsAsync(new HttpResponseMessage
+            {
+                StatusCode = HttpStatusCode.OK,
+                Content = new StringContent(jsonResponse)
+            });
+
+        // Act
+        var result = await _client.LoginAsync("test@test.com", "password");
+
+        // Assert
+        result.Should().NotBeNull();
+        result!.Success.Should().BeTrue();
+        result.Token.Should().Be("fake-jwt-token");
+
+        _mockLocalStorage.Verify(
+            x => x.SetItemAsStringAsync("authToken", "fake-jwt-token", It.IsAny<CancellationToken>()), 
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task LoginAsync_WithInvalidCredentials_ShouldReturnFailure()
+    {
+        // Arrange
+        var authResponse = new AuthResponse { Success = false, Error = "Invalid credentials" };
+        var jsonResponse = JsonSerializer.Serialize(authResponse);
+
+        _mockHttpMessageHandler
+            .Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>()
+            )
+            .ReturnsAsync(new HttpResponseMessage
+            {
+                StatusCode = HttpStatusCode.BadRequest, // or OK depending on API design, assume 400 for failure
+                Content = new StringContent(jsonResponse)
+            });
+
+        // Act
+        var result = await _client.LoginAsync("test@test.com", "wrong");
+
+        // Assert
+        result.Should().NotBeNull();
+        result!.Success.Should().BeFalse();
+        
+        _mockLocalStorage.Verify(
+            x => x.SetItemAsStringAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), 
+            Times.Never);
+    }
+}
