@@ -9,14 +9,13 @@
   <ItemGroup>
     <PackageReference Include="Blazored.LocalStorage" Version="4.3.0" />
     <PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="8.0.0" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="7.0.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="src\Boolk.Client\Boolk.Client.csproj" />
-    <ProjectReference Include="src\Boolk.Infrastructure\Boolk.Infrastructure.csproj" />
+    <ProjectReference Include="..\Boolk.Application\Boolk.Application.csproj" />
+    <ProjectReference Include="..\Boolk.Infrastructure\Boolk.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>
-
-
-

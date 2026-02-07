@@ -1,0 +1,17 @@
+using Boolk.Domain.Entities;
+
+namespace Boolk.Application.Interfaces;
+
+/// <summary>
+/// Repository interface for review data access.
+/// </summary>
+public interface IReviewRepository
+{
+    Task<Review?> GetByIdAsync(Guid id);
+    Task<IEnumerable<Review>> GetAllAsync();
+    Task<IEnumerable<Review>> GetByRestaurantIdAsync(Guid restaurantId);
+    Task<IEnumerable<Review>> GetByUserIdAsync(Guid userId);
+    Task<Review> CreateAsync(Review review);
+    Task UpdateAsync(Review review);
+    Task DeleteAsync(Guid id);
+}

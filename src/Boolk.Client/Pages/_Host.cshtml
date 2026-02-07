@@ -1,0 +1,10 @@
+@page "/"
+@namespace Boolk.Client.Pages
+@using Boolk.Client
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@{
+    Layout = "_Layout";
+}
+
+<component type="typeof(App)" render-mode="ServerPrerendered" />
+

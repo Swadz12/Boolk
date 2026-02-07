@@ -1,0 +1,232 @@
+@page "/restaurants"
+@inject RestaurantApiClient RestaurantClient
+
+<PageTitle>Restaurants - Boolk</PageTitle>
+
+<div class="hero" style="padding: 2rem;">
+    <div class="hero-content">
+        <h1 style="font-size: 2.5rem;">Restaurant Directory</h1>
+        <p>Add new restaurants or browse existing ones</p>
+    </div>
+</div>
+
+<div class="container mt-5">
+    <div class="grid grid-2">
+        <!-- Add Restaurant Form -->
+        <div class="card fade-in">
+            <div class="card-header">
+                <h2 class="card-title">➕ Add New Restaurant</h2>
+            </div>
+            <EditForm Model="@newRestaurant" OnValidSubmit="@HandleSubmit">
+                <DataAnnotationsValidator />
+                <div class="mb-3">
+                    <label class="form-label" style="margin: 0.55rem; display: block;">Type:</label>
+                    <InputSelect @bind-Value="restaurantType" class="form-select">
+                        <option value="">Select type...</option>
+                        <option value="fastfood">🍟 Fast Food</option>
+                        <option value="studentbar">🍺 Student Bar</option>
+                        <option value="premium">⭐ Premium</option>
+                        <option value="asian">🍜 Asian </option>
+                        <option value="burgers">🍔 Burgers</option>
+                        <option value="sushi">🍱 Sushi</option>
+                        <option value="italian">🍕 Italian</option>
+                        <option value="kebab">🫔 Kebab</option>
+                    </InputSelect>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label" style="margin: 0.5rem; display: block;">Name:</label>
+                    <InputText @bind-Value="newRestaurant.Name" class="form-control" placeholder="Enter restaurant name" />
+                    <ValidationMessage For="@(() => newRestaurant.Name)" class="validation-message" />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label" style="margin: 0.5rem; display: block;">City:</label>
+                    <InputText @bind-Value="newRestaurant.City" class="form-control" placeholder="Enter city" />
+                    <ValidationMessage For="@(() => newRestaurant.City)" class="validation-message" />
+                </div>
+                <button type="submit" class="btn btn-primary" disabled="@isSubmitting" style="margin-top: 1rem;">
+                    @if (isSubmitting)
+                    {
+                        <span class="spinner"></span>
+                    }
+                    Add Restaurant
+                </button>
+            </EditForm>
+
+            @if (!string.IsNullOrEmpty(message))
+            {
+                <div class="alert @(message.Contains("Error") ? "alert-error" : "alert-success") mt-3">
+                    @message
+                </div>
+            }
+        </div>
+
+        <!-- Stats Card -->
+        <div class="card fade-in" style="animation-delay: 0.1s">
+            <div class="card-header">
+                <h2 class="card-title">📊 Statistics</h2>
+            </div>
+            <div class="stats-card" style="background: transparent; border: none; padding: 0;">
+                <div class="stats-number">@totalRestaurants</div>
+                <div class="stats-label">Total Restaurants</div>
+            </div>
+             <div style="margin-top: 1rem;">
+                <p>Page @currentPage of @totalPages</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Existing Restaurants -->
+    @if (restaurants != null && restaurants.Any())
+    {
+        <div class="card fade-in" style="margin-top: 2rem;animation-delay: 0.2s">
+            <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                <h2 class="card-title">🍴 All Restaurants</h2>
+                <div>
+                     <button class="btn btn-secondary" @onclick="PrevPage" disabled="@(currentPage == 1)" style="padding: 0.5rem 1rem; margin-right: 0.5rem;">
+                        ⬅️ Prev
+                    </button>
+                    <span style="margin: 0 1rem;">Page @currentPage</span>
+                    <button class="btn btn-secondary" @onclick="NextPage" disabled="@(!hasMorePages)" style="padding: 0.5rem 1rem;">
+                        Next ➡️
+                    </button>
+                    <button class="btn btn-secondary" @onclick="RefreshRestaurants" style="padding: 0.5rem 1rem; font-size: 0.85rem; margin-left: 1rem;">
+                        🔄 Refresh
+                    </button>
+                </div>
+            </div>
+            <div class="grid grid-3" style="padding: 1rem;">
+                @foreach (var (restaurant, index) in restaurants.Select((r, i) => (r, i)))
+                {
+                    <a href="/restaurant/@restaurant.Id" style="text-decoration: none; color: inherit;">
+                        <div class="restaurant-card fade-in" style="@($"animation-delay: {index * 0.05}s")">
+                            <h3 class="restaurant-name">@restaurant.Name</h3>
+                            <p class="restaurant-city">📍 @restaurant.City</p>
+                            <span class="restaurant-type">@restaurant.DisplayIcon @restaurant.DisplayName</span>
+                            <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--glass-border);">
+                                <small style="color: var(--text-secondary);">ID: @restaurant.Id.ToString().Substring(0, 8)...</small>
+                            </div>
+                        </div>
+                    </a>
+                }
+            </div>
+        </div>
+    }
+    else if (restaurants != null && !restaurants.Any())
+    {
+        <div class="card mt-5 fade-in" style="animation-delay: 0.2s">
+             <div class="card-header" style="display: flex; justify-content: flex-end;">
+                 <button class="btn btn-secondary" @onclick="PrevPage" disabled="@(currentPage == 1)" style="padding: 0.5rem 1rem; margin-right: 0.5rem;">
+                        ⬅️ Prev
+                 </button>
+            </div>
+            <div style="text-align: center; padding: 3rem;">
+                <div style="font-size: 4rem; margin-bottom: 1rem;">🍽️</div>
+                <h3 style="margin-bottom: 1rem;">No restaurants found</h3>
+                <p style="color: var(--text-secondary);">
+                    Try adding one or going back to the previous page.
+                </p>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private NewRestaurantModel newRestaurant = new();
+    private string restaurantType = "fastfood";
+    private string message = "";
+    private bool isSubmitting = false;
+    private List<RestaurantDto>? restaurants;
+    
+    // Pagination state
+    private int currentPage = 1;
+    private int pageSize = 6;
+    private int totalRestaurants = 0;
+    private int totalPages = 1;
+    private bool hasMorePages = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadRestaurants();
+    }
+
+    private async Task LoadRestaurants()
+    {
+        try
+        {
+            var result = await RestaurantClient.GetAllAsync(currentPage, pageSize);
+            if (result != null)
+            {
+                restaurants = result.Items.ToList();
+                totalRestaurants = result.TotalCount;
+                totalPages = (int)Math.Ceiling((double)result.TotalCount / pageSize);
+                hasMorePages = currentPage < totalPages;
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading restaurants: {ex.Message}");
+        }
+    }
+
+    private async Task HandleSubmit()
+    {
+        isSubmitting = true;
+        message = "";
+        StateHasChanged();
+
+        try
+        {
+            await RestaurantClient.CreateAsync(newRestaurant.Name, newRestaurant.City, restaurantType);
+            message = $"✅ Restaurant '{newRestaurant.Name}' added successfully!";
+            newRestaurant = new NewRestaurantModel();
+            restaurantType = "fastfood";
+            
+            // Go to first page and refresh
+            currentPage = 1;
+            await LoadRestaurants();
+            
+            // Clear message after 3 seconds
+            await Task.Delay(3000);
+            message = "";
+        }
+        catch (Exception ex)
+        {
+            message = $"❌ Error: {ex.Message}";
+        }
+        finally
+        {
+            isSubmitting = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task RefreshRestaurants()
+    {
+        await LoadRestaurants();
+        StateHasChanged();
+    }
+    
+    private async Task NextPage()
+    {
+        if (hasMorePages)
+        {
+            currentPage++;
+            await LoadRestaurants();
+        }
+    }
+
+    private async Task PrevPage()
+    {
+        if (currentPage > 1)
+        {
+            currentPage--;
+            await LoadRestaurants();
+        }
+    }
+
+    class NewRestaurantModel
+    {
+        public string Name { get; set; } = "";
+        public string City { get; set; } = "";
+    }
+}
