@@ -22,7 +22,15 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Boolk.csproj" />
+    <ProjectReference Include="..\src\Boolk.API\Boolk.API.csproj">
+      <Aliases>BoolkApi</Aliases>
+    </ProjectReference>
+    <ProjectReference Include="..\src\Boolk.Application\Boolk.Application.csproj" />
+    <ProjectReference Include="..\src\Boolk.Domain\Boolk.Domain.csproj" />
+    <ProjectReference Include="..\src\Boolk.Infrastructure\Boolk.Infrastructure.csproj" />
+    <ProjectReference Include="..\src\Boolk.Client\Boolk.Client.csproj">
+      <Aliases>BoolkClient</Aliases>
+    </ProjectReference>
   </ItemGroup>
 
 </Project>

@@ -4,27 +4,41 @@ A Blazor Server application for ranking restaurants based on user reviews using 
 
 ## Architecture
 
-This project implements several design patterns:
-- **Factory Pattern**: `RestaurantFactory` for creating different restaurant types
-- **Strategy Pattern**: Multiple ranking strategies (BestValue, Cheapest, MostFilling)
-- **Observer Pattern**: `RankingObserver` for tracking ranking updates
-- **Repository Pattern**: Firebase-based repositories for data access
-- **Facade Pattern**: `RestaurantSystemFacade` for simplified API access
-- **Singleton Pattern**: `RankingService` as a singleton instance
+This project follows **Clean Architecture** principles, ensuring separation of concerns and maintainability.
+
+### System Overview
+
+```mermaid
+graph TD
+    Client[Blazor Client] -->|HTTP| API[Web API]
+    API -->|Uses| App[Application Layer]
+    App -->|Defines Interfaces| Domain[Domain Layer]
+    Infra[Infrastructure Layer] -->|Implements Interfaces| App
+    Infra -->|Uses| Domain
+    Infra -->|Read/Write| DB[(Firebase Firestore)]
+```
+
+### Design Patterns Implemented
+- **Factory Pattern**: `RestaurantFactory` handles creation of specific restaurant types (`Kebab`, `Pizza`, etc.).
+- **Strategy Pattern**: `RankingService` uses interchangeable strategies (`BestValue`, `Cheapest`, `MostFilling`) to calculate rankings dynamically.
+- **Repository Pattern**: `RestaurantRepository` and `ReviewRepository` abstract Firebase data access.
+- **Dependency Injection**: Extensive use of DI for services and repositories.
 
 ## Project Structure
 
 ```
-Boolk/
-├── Models/              # Domain models (RestaurantBase, User, Review)
-├── Repositories/        # Repository interfaces and Firebase implementations
-├── Factory/            # RestaurantFactory
-├── RankingEngine/       # Strategy and Observer patterns
-├── Services/           # Business logic layer
-├── Facade/             # Facade pattern
-├── Firebase/           # Firebase configuration
-├── Pages/              # Blazor pages
-└── Shared/             # Shared Blazor components
+src/
+├── Boolk.Domain/          # Core entities and logic
+│   ├── Entities/          # RestaurantBase, Kebab, Review
+│   └── Factories/         # RestaurantFactory
+├── Boolk.Application/     # Interfaces and Use Cases
+│   ├── Interfaces/        # Service and Repository contracts
+│   └── Ranking/           # Strategy pattern definitions
+├── Boolk.Infrastructure/  # Implementation details
+│   ├── Persistence/       # Firebase repositories
+│   └── Services/          # Concrete service implementations
+├── Boolk.API/             # REST API endpoints
+└── Boolk.Client/          # Blazor WebAssembly/Server UI
 ```
 
 ## Features
@@ -35,7 +49,7 @@ Boolk/
   - **Best Value**: Ranks by satiety per price ratio
   - **Cheapest**: Ranks by lowest average price
   - **Most Filling**: Ranks by highest average satiety level
-- **Real-time Updates**: Observer pattern notifies when rankings are updated
+- **Live Ranking Calculation**: Rankings are computed on-the-fly based on current data.
 
 ## Usage
 
