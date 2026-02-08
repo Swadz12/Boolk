@@ -18,17 +18,20 @@ public class RestaurantService : IRestaurantService
     private readonly RestaurantFactory _factory;
     private readonly IRankingService _rankingService;
     private readonly IMediator _mediator;
+    private readonly IMenuApiClient _menuApiClient;
 
     public RestaurantService(
         IUnitOfWork unitOfWork, 
         RestaurantFactory factory,
         IRankingService rankingService,
-        IMediator mediator)
+        IMediator mediator,
+        IMenuApiClient menuApiClient)
     {
         _unitOfWork = unitOfWork;
         _factory = factory;
         _rankingService = rankingService;
         _mediator = mediator;
+        _menuApiClient = menuApiClient;
     }
 
     public async Task<PagedResult<RestaurantDto>> GetAllAsync(int page, int pageSize)
@@ -56,6 +59,21 @@ public class RestaurantService : IRestaurantService
     {
         // Use Factory pattern for restaurant creation
         var restaurant = _factory.Create(request.Type, request.Name, request.City);
+        
+        // Fetch menu from external API (optional - restaurant created even if this fails)
+        Menu? menu = null;
+        try
+        {
+            menu = await _menuApiClient.GetMenuAsync(request.Name, request.City, request.Type);
+            if (menu != null)
+            {
+                menu.RestaurantId = restaurant.Id;
+            }
+        }
+        catch
+        {
+            // Menu fetch failed - continue without menu (menu is optional)
+        }
         
         await _unitOfWork.Restaurants.CreateAsync(restaurant);
         

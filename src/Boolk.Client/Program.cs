@@ -4,6 +4,7 @@ using Boolk.Client.Auth;
 using Boolk.Infrastructure;
 using Boolk.Infrastructure.Persistence.Firebase;
 using Boolk.Infrastructure.Auth;
+using Boolk.Application.Interfaces;
 using Blazored.LocalStorage;
 using Microsoft.AspNetCore.Components.Authorization;
 using System.Globalization;
@@ -39,6 +40,14 @@ var jwtSettings = new JwtSettings
 };
 
 builder.Services.AddInfrastructure(firebaseConfig, jwtSettings);
+
+// Add MediatR (Required by Infrastructure services)
+builder.Services.AddMediatR(cfg => {
+    cfg.RegisterServicesFromAssembly(typeof(Boolk.Application.Events.RankingChangedEvent).Assembly);
+});
+
+// Add Dummy RealTime Notifier for Client-side execution
+builder.Services.AddScoped<IRealTimeNotifier, Boolk.Client.Services.NoOpRealTimeNotifier>();
 
 // Option 2: Add Client services for API access (new mode)
 // Configure the base URL for the API (must match where API is actually running)

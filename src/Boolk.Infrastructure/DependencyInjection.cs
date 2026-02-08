@@ -47,6 +47,9 @@ public static class DependencyInjection
         services.AddScoped<IRestaurantService, RestaurantService>();
         services.AddScoped<IReviewService, ReviewService>();
         
+        // Register Menu API Client (uses fake for development)
+        services.AddScoped<IMenuApiClient, FakeMenuApiClient>();
+        
         // ========================================
         // CACHING LAYER
         // ========================================

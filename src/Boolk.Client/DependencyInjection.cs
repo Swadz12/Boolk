@@ -23,9 +23,21 @@ public static class DependencyInjection
         services.AddBlazoredLocalStorage();
         
         // Configure HttpClient with base address
-        services.AddScoped(sp => new HttpClient 
-        { 
-            BaseAddress = new Uri(apiBaseUrl) 
+        // Configure HttpClient with base address and ignoring SSL errors for localhost
+        services.AddScoped(sp => 
+        {
+            var handler = new HttpClientHandler();
+            
+            // Bypass SSL certificate validation for development (localhost)
+            if (apiBaseUrl.Contains("localhost"))
+            {
+                handler.ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator;
+            }
+
+            return new HttpClient(handler) 
+            { 
+                BaseAddress = new Uri(apiBaseUrl) 
+            };
         });
         
         // Register API clients

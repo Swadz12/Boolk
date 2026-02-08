@@ -5,6 +5,7 @@ using Boolk.Domain.Entities;
 using Boolk.Domain.Factories;
 using Boolk.Infrastructure.Services;
 using FluentAssertions;
+using MediatR;
 using Moq;
 using Xunit;
 
@@ -16,6 +17,8 @@ public class RestaurantServiceTests
     private readonly Mock<IRestaurantRepository> _mockRestaurantRepo;
     private readonly RestaurantFactory _factory;
     private readonly Mock<IRankingService> _mockRankingService;
+    private readonly Mock<IMediator> _mockMediator;
+    private readonly Mock<IMenuApiClient> _mockMenuApiClient;
     private readonly RestaurantService _sut; // System Under Test
 
     public RestaurantServiceTests()
@@ -24,10 +27,21 @@ public class RestaurantServiceTests
         _mockRestaurantRepo = new Mock<IRestaurantRepository>();
         _factory = new RestaurantFactory();
         _mockRankingService = new Mock<IRankingService>();
+        _mockMediator = new Mock<IMediator>();
+        _mockMenuApiClient = new Mock<IMenuApiClient>();
 
         _mockUnitOfWork.Setup(u => u.Restaurants).Returns(_mockRestaurantRepo.Object);
+        
+        // Default menu API behavior - returns null (no menu)
+        _mockMenuApiClient.Setup(m => m.GetMenuAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+            .ReturnsAsync((Menu?)null);
 
-        _sut = new RestaurantService(_mockUnitOfWork.Object, _factory, _mockRankingService.Object);
+        _sut = new RestaurantService(
+            _mockUnitOfWork.Object, 
+            _factory, 
+            _mockRankingService.Object, 
+            _mockMediator.Object,
+            _mockMenuApiClient.Object);
     }
 
     [Fact]
