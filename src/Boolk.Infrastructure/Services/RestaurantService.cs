@@ -4,6 +4,8 @@ using Boolk.Application.Interfaces;
 using Boolk.Application.Ranking;
 using Boolk.Domain.Entities;
 using Boolk.Domain.Factories;
+using MediatR;
+using Boolk.Application.Events;
 
 namespace Boolk.Infrastructure.Services;
 
@@ -15,15 +17,21 @@ public class RestaurantService : IRestaurantService
     private readonly IUnitOfWork _unitOfWork;
     private readonly RestaurantFactory _factory;
     private readonly IRankingService _rankingService;
+    private readonly IMediator _mediator;
+    private readonly IMenuApiClient _menuApiClient;
 
     public RestaurantService(
         IUnitOfWork unitOfWork, 
         RestaurantFactory factory,
-        IRankingService rankingService)
+        IRankingService rankingService,
+        IMediator mediator,
+        IMenuApiClient menuApiClient)
     {
         _unitOfWork = unitOfWork;
         _factory = factory;
         _rankingService = rankingService;
+        _mediator = mediator;
+        _menuApiClient = menuApiClient;
     }
 
     public async Task<PagedResult<RestaurantDto>> GetAllAsync(int page, int pageSize)
@@ -52,8 +60,29 @@ public class RestaurantService : IRestaurantService
         // Use Factory pattern for restaurant creation
         var restaurant = _factory.Create(request.Type, request.Name, request.City);
         
+        // Fetch menu from external API (optional - restaurant created even if this fails)
+        Menu? menu = null;
+        try
+        {
+            menu = await _menuApiClient.GetMenuAsync(request.Name, request.City, request.Type);
+            if (menu != null)
+            {
+                menu.RestaurantId = restaurant.Id;
+            }
+        }
+        catch
+        {
+            // Menu fetch failed - continue without menu (menu is optional)
+        }
+        
         await _unitOfWork.Restaurants.CreateAsync(restaurant);
         
+        await _mediator.Publish(new RankingChangedEvent 
+        { 
+            RestaurantId = restaurant.Id,
+            ChangeType = RankingChangeType.RestaurantCreated 
+        });
+
         return MapToDto(restaurant);
     }
 
@@ -68,11 +97,23 @@ public class RestaurantService : IRestaurantService
         restaurant.City = request.City;
         
         await _unitOfWork.Restaurants.UpdateAsync(restaurant);
+
+        await _mediator.Publish(new RankingChangedEvent 
+        { 
+            RestaurantId = id,
+            ChangeType = RankingChangeType.RestaurantUpdated 
+        });
     }
 
     public async Task DeleteAsync(Guid id)
     {
         await _unitOfWork.Restaurants.DeleteAsync(id);
+
+        await _mediator.Publish(new RankingChangedEvent 
+        { 
+            RestaurantId = id,
+            ChangeType = RankingChangeType.RestaurantDeleted 
+        });
     }
 
     public async Task<IEnumerable<RestaurantDto>> GetRankedAsync(string strategy)

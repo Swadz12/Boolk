@@ -1,7 +1,6 @@
-extern alias BoolkClient;
 using Blazored.LocalStorage;
 using Boolk.Application.DTOs;
-using BoolkClient::Boolk.Client.ApiClients;
+using Boolk.Client.ApiClients;
 using FluentAssertions;
 using Moq;
 using Moq.Protected;
@@ -34,7 +33,7 @@ public class AuthApiClientTests
     public async Task LoginAsync_WithValidCredentials_ShouldReturnSuccessAndStoreToken()
     {
         // Arrange
-        var authResponse = new AuthResponse { Success = true, Token = "fake-jwt-token" };
+        var authResponse = new AuthResponse(true, "fake-jwt-token", null, null);
         var jsonResponse = JsonSerializer.Serialize(authResponse);
 
         _mockHttpMessageHandler
@@ -67,7 +66,7 @@ public class AuthApiClientTests
     public async Task LoginAsync_WithInvalidCredentials_ShouldReturnFailure()
     {
         // Arrange
-        var authResponse = new AuthResponse { Success = false, Error = "Invalid credentials" };
+        var authResponse = new AuthResponse(false, null, null, "Invalid credentials");
         var jsonResponse = JsonSerializer.Serialize(authResponse);
 
         _mockHttpMessageHandler

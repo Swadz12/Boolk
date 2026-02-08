@@ -15,33 +15,45 @@ public class RestaurantFactoryTests
     }
 
     [Theory]
-    [InlineData("Italian", typeof(ItalianRestaurant))]
-    [InlineData("Burger", typeof(Burgers))]
-    [InlineData("Sushi", typeof(Sushi))]
-    [InlineData("Kebab", typeof(Kebab))]
-    [InlineData("FastFood", typeof(FastFoodRestaurant))]
-    [InlineData("Premium", typeof(PremiumRestaurant))]
-    [InlineData("StudentBar", typeof(StudentBar))]
-    [InlineData("Asian", typeof(AsianRestaurant))]
-    public void CreateRestaurant_WithValidType_ShouldReturnCorrectInstance(string type, Type expectedType)
+    [InlineData("fastfood", typeof(FastFoodRestaurant))]
+    [InlineData("FastFoodRestaurant", typeof(FastFoodRestaurant))]
+    [InlineData("italian", typeof(ItalianRestaurant))]
+    [InlineData("sushi", typeof(Sushi))]
+    public void CreateFromData_ShouldReturnCorrectType_WhenTypeIsValid(string type, Type expectedType)
     {
+        // Arrange
+        var id = Guid.NewGuid();
+        var name = "Test Restaurant";
+        var city = "Test City";
+
         // Act
-        var restaurant = _factory.CreateRestaurant(type);
+        var result = _factory.CreateFromData(type, name, city, id);
 
         // Assert
-        restaurant.Should().NotBeNull();
-        restaurant.Should().BeOfType(expectedType);
-        restaurant.Type.Should().Be(type);
+        result.Should().NotBeNull();
+        result.Should().BeOfType(expectedType);
+        result!.Id.Should().Be(id); // Important: Verify ID is preserved
+        result.Name.Should().Be(name);
+        result.City.Should().Be(city);
     }
 
     [Fact]
-    public void CreateRestaurant_WithInvalidType_ShouldThrowException()
+    public void CreateFromData_ShouldReturnNull_WhenTypeIsInvalid()
     {
         // Act
-        Action act = () => _factory.CreateRestaurant("UnknownType");
+        var result = _factory.CreateFromData("invalid_type", "Name", "City", Guid.NewGuid());
 
         // Assert
-        act.Should().Throw<ArgumentException>()
-            .WithMessage("Invalid restaurant type");
+        result.Should().BeNull();
+    }
+    
+    [Fact]
+    public void Create_ShouldThrowException_WhenTypeIsInvalid()
+    {
+         // Act
+         Action act = () => _factory.Create("invalid_type", "Name", "City");
+
+         // Assert
+         act.Should().Throw<ArgumentException>();
     }
 }

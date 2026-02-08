@@ -1,8 +1,7 @@
-extern alias BoolkClient;
 using Bunit;
-using BoolkClient::Boolk.Client.Pages;
-using BoolkClient::Boolk.Client.ApiClients;
-using BoolkClient::Boolk.Client.Auth;
+using Boolk.Client.Pages;
+using Boolk.Client.ApiClients;
+using Boolk.Client.Auth;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Xunit;
@@ -56,7 +55,7 @@ public class LoginComponentTests : TestContext
     public void Login_WhenFormSubmitted_ShouldCallLoginApi()
     {
         // Arrange
-        var authResponse = new AuthResponse { Success = true, Token = "fake-token" };
+        var authResponse = new AuthResponse(true, "fake-token", null, null);
         var jsonResponse = JsonSerializer.Serialize(authResponse);
 
         _mockHttpMessageHandler

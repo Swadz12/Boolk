@@ -51,7 +51,7 @@
             <div class="grid grid-3" style="padding: 1rem;">
                 @foreach (var (restaurant, index) in rankedRestaurants.Select((r, i) => (r, i + 1)))
                 {
-                    <a href="/restaurant/@restaurant.Id" style="text-decoration: none; color: inherit;">
+                    <a @key="restaurant.Id" href="/restaurant/@restaurant.Id" style="text-decoration: none; color: inherit;">
                         <div class="restaurant-card fade-in" style="@($"animation-delay: {index * 0.1}s")">
                             <div class="rank-badge @GetRankClass(index)">
                                 @index
@@ -114,7 +114,6 @@
         finally
         {
             isLoading = false;
-            StateHasChanged();
         }
     }
 

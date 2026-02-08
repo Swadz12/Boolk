@@ -1,9 +1,11 @@
 using Boolk.Application.DTOs;
 using Boolk.Application.Interfaces;
+using Boolk.Application.Ranking;
 using Boolk.Domain.Entities;
 using Boolk.Domain.Factories;
 using Boolk.Infrastructure.Services;
 using FluentAssertions;
+using MediatR;
 using Moq;
 using Xunit;
 
@@ -15,6 +17,8 @@ public class RestaurantServiceTests
     private readonly Mock<IRestaurantRepository> _mockRestaurantRepo;
     private readonly RestaurantFactory _factory;
     private readonly Mock<IRankingService> _mockRankingService;
+    private readonly Mock<IMediator> _mockMediator;
+    private readonly Mock<IMenuApiClient> _mockMenuApiClient;
     private readonly RestaurantService _sut; // System Under Test
 
     public RestaurantServiceTests()
@@ -23,17 +27,28 @@ public class RestaurantServiceTests
         _mockRestaurantRepo = new Mock<IRestaurantRepository>();
         _factory = new RestaurantFactory();
         _mockRankingService = new Mock<IRankingService>();
+        _mockMediator = new Mock<IMediator>();
+        _mockMenuApiClient = new Mock<IMenuApiClient>();
 
         _mockUnitOfWork.Setup(u => u.Restaurants).Returns(_mockRestaurantRepo.Object);
+        
+        // Default menu API behavior - returns null (no menu)
+        _mockMenuApiClient.Setup(m => m.GetMenuAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+            .ReturnsAsync((Menu?)null);
 
-        _sut = new RestaurantService(_mockUnitOfWork.Object, _factory, _mockRankingService.Object);
+        _sut = new RestaurantService(
+            _mockUnitOfWork.Object, 
+            _factory, 
+            _mockRankingService.Object, 
+            _mockMediator.Object,
+            _mockMenuApiClient.Object);
     }
 
     [Fact]
     public async Task CreateAsync_WithValidRequest_ShouldCreateRestaurant()
     {
         // Arrange
-        var request = new CreateRestaurantRequest("My Pizza", "City", "Italian");
+        var request = new CreateRestaurantRequest("Italian", "My Pizza", "City");
 
         // Act
         var result = await _sut.CreateAsync(request);
@@ -52,7 +67,16 @@ public class RestaurantServiceTests
     {
         // Arrange
         var id = Guid.NewGuid();
-        var restaurant = new ItalianRestaurant { Id = id, Name = "My Pizza", City = "City" };
+        var mockRestaurant = new Mock<RestaurantBase>();
+        mockRestaurant.SetupAllProperties();
+        mockRestaurant.SetupGet(r => r.DisplayName).Returns("Test");
+        mockRestaurant.SetupGet(r => r.DisplayIcon).Returns("T");
+        
+        var restaurant = mockRestaurant.Object;
+        restaurant.Id = id;
+        restaurant.Name = "My Pizza";
+        restaurant.City = "City";
+
         _mockRestaurantRepo.Setup(r => r.GetByIdAsync(id)).ReturnsAsync(restaurant);
 
         // Act

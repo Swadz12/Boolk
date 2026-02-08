@@ -6,7 +6,7 @@ using Boolk.Domain.Entities;
 namespace Boolk.Infrastructure.Services;
 
 /// <summary>
-/// Ranking service implementation using Strategy pattern.
+/// Implementation of ranking service using Strategy pattern.
 /// </summary>
 public class RankingService : IRankingService
 {
@@ -17,48 +17,53 @@ public class RankingService : IRankingService
     {
         _unitOfWork = unitOfWork;
         
-        // Register available strategies
-        _strategies = new Dictionary<string, IRankingStrategy>(StringComparer.OrdinalIgnoreCase);
-        RegisterStrategy(new BestValueStrategy());
-        RegisterStrategy(new CheapestStrategy());
-        RegisterStrategy(new MostFillingStrategy());
-    }
-
-    private void RegisterStrategy(IRankingStrategy strategy)
-    {
-        _strategies[strategy.Name] = strategy;
+        // Initialize strategies
+        // In a more complex setup, these could be injected via DI
+        var strategies = new List<IRankingStrategy>
+        {
+            new BestValueStrategy(),
+            new CheapestStrategy(),
+            new MostFillingStrategy()
+        };
+        
+        _strategies = strategies.ToDictionary(s => s.Name, StringComparer.OrdinalIgnoreCase);
     }
 
     public async Task<IEnumerable<RestaurantDto>> GetRankedRestaurantsAsync(string strategyName)
     {
-        // Get the strategy (default to best-value)
-        var effectiveStrategy = strategyName ?? "best-value";
-        
-        if (!_strategies.TryGetValue(effectiveStrategy, out var strategy))
+        if (!_strategies.TryGetValue(strategyName, out var strategy))
         {
-            strategy = _strategies["best-value"];
+            // Fallback to default or empty if strategy not found
+            // For now, let's default to BestValue if unknown, or throw
+            strategy = _strategies.First().Value;
         }
 
-        // Get all restaurants and reviews
-        var restaurants = (await _unitOfWork.Restaurants.GetAllAsync(0, 100)).ToList();
-        var reviews = (await _unitOfWork.Reviews.GetAllAsync()).ToList();
+        var restaurants = await _unitOfWork.Restaurants.GetAllAsync(0, 1000); // Get all for ranking
+        var reviews = await _unitOfWork.Reviews.GetAllAsync(); // Simplified: fetch all reviews
 
-        // Apply the ranking strategy
-        var ranked = strategy.Rank(restaurants, reviews);
-
-        // Map to DTOs
-        return ranked.Select(r => new RestaurantDto(
-            r.Id,
-            r.Name,
-            r.City,
-            r.GetType().Name,
-            r.DisplayName,
-            r.DisplayIcon
-        ));
+        // Apply strategy
+        // Note: reviews should ideally be fetched per restaurant or in bulk efficiently
+        // For this implementation, we assume we have all necessary data
+        
+        var rankedRestaurants = strategy.Rank(restaurants.ToList(), reviews.ToList());
+        
+        return rankedRestaurants.Select(MapToDto);
     }
 
     public IEnumerable<string> GetAvailableStrategies()
     {
-        return _strategies.Values.Select(s => s.Name);
+        return _strategies.Keys;
+    }
+
+    private static RestaurantDto MapToDto(RestaurantBase restaurant)
+    {
+        return new RestaurantDto(
+            restaurant.Id,
+            restaurant.Name,
+            restaurant.City,
+            restaurant.GetType().Name,
+            restaurant.DisplayName,
+            restaurant.DisplayIcon
+        );
     }
 }

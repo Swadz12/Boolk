@@ -10,26 +10,26 @@ public class ReviewTests
     [InlineData(1)]
     [InlineData(3)]
     [InlineData(5)]
-    public void Constructor_WithValidRating_ShouldCreateReview(int rating)
+    public void Constructor_WithValidPriceAndSatiety_ShouldCreateReview(int value)
     {
         // Arrange
-        var content = "Great food!";
-        var userId = "user123";
-        var userName = "John Doe";
+        var comment = "Great food!";
+        var userId = Guid.NewGuid();
 
         // Act
         var review = new Review
         {
-            Content = content,
-            Rating = rating,
+            Comment = comment,
+            Price = value,
+            SatietyLevel = value,
             UserId = userId,
-            UserName = userName,
             CreatedAt = DateTime.UtcNow
         };
 
         // Assert
-        review.Rating.Should().Be(rating);
-        review.Content.Should().Be(content);
+        review.Price.Should().Be(value);
+        review.SatietyLevel.Should().Be(value);
+        review.Comment.Should().Be(comment);
         review.UserId.Should().Be(userId);
     }
 }
