@@ -2,6 +2,7 @@ using Boolk.Application.Interfaces;
 using Boolk.Application.Ranking;
 using Boolk.Domain.Factories;
 using Boolk.Infrastructure.Auth;
+using Boolk.Infrastructure.Caching;
 using Boolk.Infrastructure.Persistence.Firebase;
 using Boolk.Infrastructure.Services;
 using Google.Cloud.Firestore;
@@ -46,7 +47,23 @@ public static class DependencyInjection
         services.AddScoped<IRestaurantService, RestaurantService>();
         services.AddScoped<IReviewService, ReviewService>();
         
+        // ========================================
+        // CACHING LAYER
+        // ========================================
+        
+        // Add Memory Cache
+        services.AddMemoryCache();
+        
+        // Configure cache options
+        services.Configure<CacheOptions>(options =>
+        {
+            options.RestaurantCacheDuration = TimeSpan.FromMinutes(10);
+            options.ReviewCacheDuration = TimeSpan.FromMinutes(5);
+        });
+        
+        // Decorate UnitOfWork with caching layer (Scrutor)
+        services.Decorate<IUnitOfWork, CachedUnitOfWork>();
+        
         return services;
     }
 }
-

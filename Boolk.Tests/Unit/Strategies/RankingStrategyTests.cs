@@ -9,7 +9,7 @@ public class RankingStrategyTests
 {
     private class TestRestaurant : RestaurantBase
     {
-        public override string Type => "Test";
+
         public override string DisplayName => "Test Restaurant";
         public override string DisplayIcon => "Test Icon";
     }

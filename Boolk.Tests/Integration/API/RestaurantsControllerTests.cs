@@ -1,11 +1,12 @@
-extern alias BoolkApi;
-using Program = BoolkApi::Program;
+
+
 using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit;
 using FluentAssertions;
 using System.Net;
 using Boolk.Application.DTOs;
 using System.Net.Http.Json;
+using Boolk.Application.Common;
 
 namespace Boolk.Tests.API;
 

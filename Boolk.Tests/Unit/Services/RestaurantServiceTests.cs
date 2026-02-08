@@ -1,5 +1,6 @@
 using Boolk.Application.DTOs;
 using Boolk.Application.Interfaces;
+using Boolk.Application.Ranking;
 using Boolk.Domain.Entities;
 using Boolk.Domain.Factories;
 using Boolk.Infrastructure.Services;
@@ -33,7 +34,7 @@ public class RestaurantServiceTests
     public async Task CreateAsync_WithValidRequest_ShouldCreateRestaurant()
     {
         // Arrange
-        var request = new CreateRestaurantRequest("My Pizza", "City", "Italian");
+        var request = new CreateRestaurantRequest("Italian", "My Pizza", "City");
 
         // Act
         var result = await _sut.CreateAsync(request);
@@ -52,7 +53,16 @@ public class RestaurantServiceTests
     {
         // Arrange
         var id = Guid.NewGuid();
-        var restaurant = new ItalianRestaurant { Id = id, Name = "My Pizza", City = "City" };
+        var mockRestaurant = new Mock<RestaurantBase>();
+        mockRestaurant.SetupAllProperties();
+        mockRestaurant.SetupGet(r => r.DisplayName).Returns("Test");
+        mockRestaurant.SetupGet(r => r.DisplayIcon).Returns("T");
+        
+        var restaurant = mockRestaurant.Object;
+        restaurant.Id = id;
+        restaurant.Name = "My Pizza";
+        restaurant.City = "City";
+
         _mockRestaurantRepo.Setup(r => r.GetByIdAsync(id)).ReturnsAsync(restaurant);
 
         // Act

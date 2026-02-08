@@ -4,11 +4,14 @@ using FluentAssertions;
 using Google.Cloud.Firestore;
 using Xunit;
 
+using Boolk.Domain.Factories;
+
 namespace Boolk.Tests.Infrastructure;
 
 public class FirebaseRestaurantRepositoryTests : IAsyncLifetime
 {
     private readonly FirestoreDb _firestoreDb;
+    private readonly RestaurantFactory _factory;
     private readonly FirebaseRestaurantRepository _repository;
     private readonly string _testProjectId = "boolk-11546";
 
@@ -28,7 +31,8 @@ public class FirebaseRestaurantRepositoryTests : IAsyncLifetime
             EmulatorDetection = Google.Api.Gax.EmulatorDetection.EmulatorOnly
         }.Build();
 
-        _repository = new FirebaseRestaurantRepository(_firestoreDb);
+        _factory = new RestaurantFactory();
+        _repository = new FirebaseRestaurantRepository(_firestoreDb, _factory);
     }
 
     public async Task InitializeAsync()

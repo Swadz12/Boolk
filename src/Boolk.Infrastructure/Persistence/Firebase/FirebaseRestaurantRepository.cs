@@ -1,5 +1,6 @@
 using Boolk.Application.Interfaces;
 using Boolk.Domain.Entities;
+using Boolk.Domain.Factories;
 using Google.Cloud.Firestore;
 
 namespace Boolk.Infrastructure.Persistence.Firebase;
@@ -10,11 +11,13 @@ namespace Boolk.Infrastructure.Persistence.Firebase;
 public class FirebaseRestaurantRepository : IRestaurantRepository
 {
     private readonly FirestoreDb _db;
+    private readonly RestaurantFactory _factory;
     private const string CollectionName = "restaurants";
 
-    public FirebaseRestaurantRepository(FirestoreDb db)
+    public FirebaseRestaurantRepository(FirestoreDb db, RestaurantFactory factory)
     {
         _db = db;
+        _factory = factory;
     }
 
     public async Task<RestaurantBase?> GetByIdAsync(Guid id)
@@ -42,9 +45,9 @@ public class FirebaseRestaurantRepository : IRestaurantRepository
 
     public async Task<int> GetCountAsync()
     {
-        // Firebase doesn't have native count, so we get all IDs
-        var snapshot = await _db.Collection(CollectionName).Select("Id").GetSnapshotAsync();
-        return snapshot.Count;
+        // Use Firestore native count aggregation (SDK 3.0+)
+        var countQuery = await _db.Collection(CollectionName).Count().GetSnapshotAsync();
+        return (int)(countQuery.Count ?? 0);
     }
 
     public async Task<RestaurantBase> CreateAsync(RestaurantBase restaurant)
@@ -80,18 +83,18 @@ public class FirebaseRestaurantRepository : IRestaurantRepository
         var city = data.ContainsKey("City") ? data["City"].ToString() : "";
         var id = Guid.Parse(doc.Id);
         
-        return type switch
+        try
         {
-            "FastFoodRestaurant" => new FastFoodRestaurant { Id = id, Name = name ?? "", City = city ?? "" },
-            "StudentBar" => new StudentBar { Id = id, Name = name ?? "", City = city ?? "" },
-            "PremiumRestaurant" => new PremiumRestaurant { Id = id, Name = name ?? "", City = city ?? "" },
-            "AsianRestaurant" => new AsianRestaurant { Id = id, Name = name ?? "", City = city ?? "" },
-            "Burgers" => new Burgers { Id = id, Name = name ?? "", City = city ?? "" },
-            "Kebab" => new Kebab { Id = id, Name = name ?? "", City = city ?? "" }, 
-            "ItalianRestaurant" => new ItalianRestaurant { Id = id, Name = name ?? "", City = city ?? "" }, 
-            "Sushi" => new Sushi { Id = id, Name = name ?? "", City = city ?? "" },
-            _ => null
-        };
+            var restaurant = _factory.Create(type ?? "", name ?? "", city ?? "");
+            restaurant.Id = id;
+            return restaurant;
+        }
+        catch (ArgumentException)
+        {
+            // Fallback or log? For now return null or throw? 
+            // If type is invalid, maybe return null?
+            return null;
+        }
     }
 
     private Dictionary<string, object> MapToDictionary(RestaurantBase restaurant)

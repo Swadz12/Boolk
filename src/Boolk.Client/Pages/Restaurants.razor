@@ -1,5 +1,7 @@
 @page "/restaurants"
 @inject RestaurantApiClient RestaurantClient
+@inject RankingRealTimeService RealTimeService
+@implements IAsyncDisposable
 
 <PageTitle>Restaurants - Boolk</PageTitle>
 
@@ -97,7 +99,7 @@
             <div class="grid grid-3" style="padding: 1rem;">
                 @foreach (var (restaurant, index) in restaurants.Select((r, i) => (r, i)))
                 {
-                    <a href="/restaurant/@restaurant.Id" style="text-decoration: none; color: inherit;">
+                    <a @key="restaurant.Id" href="/restaurant/@restaurant.Id" style="text-decoration: none; color: inherit;">
                         <div class="restaurant-card fade-in" style="@($"animation-delay: {index * 0.05}s")">
                             <h3 class="restaurant-name">@restaurant.Name</h3>
                             <p class="restaurant-city">📍 @restaurant.City</p>
@@ -144,9 +146,44 @@
     private int totalPages = 1;
     private bool hasMorePages = false;
 
+    private bool _signalRStarted = false;
+
     protected override async Task OnInitializedAsync()
     {
+        RealTimeService.OnRankingsUpdated += HandleRankingsUpdate;
         await LoadRestaurants();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && !_signalRStarted)
+        {
+            _signalRStarted = true;
+            try
+            {
+                await RealTimeService.StartAsync();
+                Console.WriteLine("[Restaurants] SignalR connection started");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[Restaurants] SignalR connection failed: {ex.Message}");
+            }
+        }
+    }
+
+    private void HandleRankingsUpdate(IEnumerable<RestaurantDto> rankings)
+    {
+        InvokeAsync(async () =>
+        {
+            await LoadRestaurants();
+            StateHasChanged();
+        });
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        RealTimeService.OnRankingsUpdated -= HandleRankingsUpdate;
+        await RealTimeService.DisposeAsync();
     }
 
     private async Task LoadRestaurants()
@@ -196,14 +233,12 @@
         finally
         {
             isSubmitting = false;
-            StateHasChanged();
         }
     }
 
     private async Task RefreshRestaurants()
     {
         await LoadRestaurants();
-        StateHasChanged();
     }
     
     private async Task NextPage()

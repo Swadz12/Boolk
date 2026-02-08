@@ -5,6 +5,9 @@ using Boolk.Infrastructure.Persistence.Firebase;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Boolk.API.Hubs;
+using Boolk.API.Services;
+using Boolk.Application.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,6 +29,17 @@ var jwtSettings = new JwtSettings
 
 // Add Infrastructure services (repos, services, etc.)
 builder.Services.AddInfrastructure(firebaseConfig, jwtSettings);
+
+// Add MediatR
+builder.Services.AddMediatR(cfg => {
+    cfg.RegisterServicesFromAssembly(typeof(Boolk.Application.Events.RankingChangedEvent).Assembly);
+});
+
+// Add SignalR
+builder.Services.AddSignalR();
+
+// Register SignalR notifier
+builder.Services.AddScoped<IRealTimeNotifier, SignalRNotifier>();
 
 // Add Controllers
 builder.Services.AddControllers();
@@ -114,6 +128,7 @@ app.UseCors("AllowBlazorClient");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+app.MapHub<RankingHub>("/hubs/ranking");
 
 app.Run();
 

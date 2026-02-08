@@ -36,6 +36,26 @@ public class RestaurantFactory
     }
 
     /// <summary>
+    /// Reconstruct a restaurant from persisted data with a specific ID.
+    /// Used by repositories when mapping from database snapshots.
+    /// </summary>
+    public RestaurantBase? CreateFromData(string type, string name, string city, Guid id)
+    {
+        // Handle both full type names and short names
+        var normalizedType = type.ToLower().Replace("restaurant", "");
+        
+        if (_creators.TryGetValue(normalizedType, out var creator) || 
+            _creators.TryGetValue(type.ToLower(), out creator))
+        {
+            var restaurant = creator(name, city);
+            restaurant.Id = id;  // Override the auto-generated ID
+            return restaurant;
+        }
+        
+        return null;
+    }
+
+    /// <summary>
     /// Create a restaurant of the specified type.
     /// </summary>
     public RestaurantBase Create(string type, string name, string city)

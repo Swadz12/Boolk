@@ -1,5 +1,6 @@
 using Blazored.LocalStorage;
 using Boolk.Client.ApiClients;
+using Boolk.Client.Services;
 using Boolk.Client.Auth;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.Extensions.DependencyInjection;
@@ -31,6 +32,10 @@ public static class DependencyInjection
         services.AddScoped<AuthApiClient>();
         services.AddScoped<RestaurantApiClient>();
         services.AddScoped<ReviewApiClient>();
+        
+        // Register Real-Time Service
+        services.AddScoped<RankingRealTimeService>(sp => 
+            new RankingRealTimeService($"{apiBaseUrl}/hubs/ranking"));
         
         // Register authentication state provider
         services.AddScoped<JwtAuthenticationStateProvider>();

@@ -1,6 +1,10 @@
 using Boolk.Application.DTOs;
 using Boolk.Application.Interfaces;
+using Boolk.Application.DTOs;
+using Boolk.Application.Interfaces;
 using Boolk.Domain.Entities;
+using MediatR;
+using Boolk.Application.Events;
 
 namespace Boolk.Infrastructure.Services;
 
@@ -10,10 +14,12 @@ namespace Boolk.Infrastructure.Services;
 public class ReviewService : IReviewService
 {
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IMediator _mediator;
 
-    public ReviewService(IUnitOfWork unitOfWork)
+    public ReviewService(IUnitOfWork unitOfWork, IMediator mediator)
     {
         _unitOfWork = unitOfWork;
+        _mediator = mediator;
     }
 
     public async Task<IEnumerable<ReviewDto>> GetAllAsync()
@@ -58,12 +64,29 @@ public class ReviewService : IReviewService
 
         await _unitOfWork.Reviews.CreateAsync(review);
         
+        await _mediator.Publish(new RankingChangedEvent 
+        { 
+            RestaurantId = review.RestaurantId,
+            ChangeType = RankingChangeType.ReviewAdded 
+        });
+
         return MapToDto(review);
     }
 
     public async Task DeleteAsync(Guid id)
     {
+        var review = await _unitOfWork.Reviews.GetByIdAsync(id);
+        
         await _unitOfWork.Reviews.DeleteAsync(id);
+
+        if (review != null)
+        {
+            await _mediator.Publish(new RankingChangedEvent 
+            { 
+                RestaurantId = review.RestaurantId,
+                ChangeType = RankingChangeType.ReviewDeleted 
+            });
+        }
     }
 
     private static ReviewDto MapToDto(Review review)

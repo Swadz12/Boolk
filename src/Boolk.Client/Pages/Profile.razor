@@ -117,7 +117,7 @@ else
                     <div style="padding: 1rem;">
                         @foreach (var review in userReviews)
                         {
-                            <div class="review-card mb-3">
+                            <div @key="review.Id" class="review-card mb-3">
                                 <div style="display:flex; justify-content:space-between; align-items:center;">
                                     <div>
                                         <strong>@GetRestaurantName(review.RestaurantId)</strong>
@@ -195,8 +195,6 @@ else
         {
             userReviews = (await ReviewClient.GetByUserAsync(currentUser.Id))?.ToList();
         }
-
-        StateHasChanged();
     }
 
     private string GetRestaurantName(Guid restaurantId)

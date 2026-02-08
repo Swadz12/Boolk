@@ -48,5 +48,4 @@ Desktop.ini
 .agent/features/
 .agent/research/
 !.agent/workflows/
-!.agent/features/
-!.agent/research/
+
