@@ -2,9 +2,6 @@ using Boolk.Domain.Entities;
 
 namespace Boolk.Application.Interfaces;
 
-/// <summary>
-/// Repository interface for review data access.
-/// </summary>
 public interface IReviewRepository
 {
     Task<Review?> GetByIdAsync(Guid id);

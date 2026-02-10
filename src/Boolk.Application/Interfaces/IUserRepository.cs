@@ -2,9 +2,6 @@ using Boolk.Domain.Entities;
 
 namespace Boolk.Application.Interfaces;
 
-/// <summary>
-/// Repository interface for user data access.
-/// </summary>
 public interface IUserRepository
 {
     Task<User?> GetByIdAsync(Guid id);

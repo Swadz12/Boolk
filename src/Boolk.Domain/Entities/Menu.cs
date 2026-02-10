@@ -1,8 +1,5 @@
 namespace Boolk.Domain.Entities;
 
-/// <summary>
-/// Represents a restaurant's complete menu.
-/// </summary>
 public class Menu
 {
     public Guid Id { get; set; }

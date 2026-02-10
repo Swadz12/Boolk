@@ -4,11 +4,6 @@ using Google.Cloud.Firestore;
 
 namespace Boolk.Infrastructure.Persistence.Firebase;
 
-/// <summary>
-/// Firebase implementation of Unit of Work.
-/// Note: Firebase auto-commits, so SaveChangesAsync is mostly for pattern consistency.
-/// This enables easy future migration to SQL databases with proper transactions.
-/// </summary>
 public class FirebaseUnitOfWork : IUnitOfWork
 {
     private readonly FirestoreDb _db;
@@ -34,14 +29,11 @@ public class FirebaseUnitOfWork : IUnitOfWork
 
     public Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
-        // Firebase auto-commits on each operation
-        // This method exists for pattern consistency with SQL databases
         return Task.FromResult(1);
     }
 
     public void Dispose()
     {
-        // No resources to dispose for Firebase
         GC.SuppressFinalize(this);
     }
 }

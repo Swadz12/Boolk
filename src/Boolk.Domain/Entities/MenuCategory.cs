@@ -1,8 +1,5 @@
 namespace Boolk.Domain.Entities;
 
-/// <summary>
-/// Menu category (e.g., "Appetizers", "Main Courses", "Desserts").
-/// </summary>
 public class MenuCategory
 {
     public Guid Id { get; set; }

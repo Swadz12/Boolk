@@ -5,17 +5,12 @@ using Microsoft.Extensions.Options;
 
 namespace Boolk.Infrastructure.Caching;
 
-/// <summary>
-/// Caching decorator for IReviewRepository.
-/// Caches read operations and invalidates on write operations.
-/// </summary>
 public class CachedReviewRepository : IReviewRepository
 {
     private readonly IReviewRepository _inner;
     private readonly IMemoryCache _cache;
     private readonly CacheOptions _options;
 
-    // Cache key patterns
     private const string AllReviewsKey = "reviews:all";
     private const string ReviewByIdKey = "reviews:id:{0}";
     private const string ReviewsByRestaurantKey = "reviews:restaurant:{0}";
@@ -79,7 +74,6 @@ public class CachedReviewRepository : IReviewRepository
         return result ?? Enumerable.Empty<Review>();
     }
 
-    // Write operations: Invalidate relevant caches
     public async Task<Review> CreateAsync(Review review)
     {
         InvalidateReviewCaches(review.RestaurantId, review.UserId);
@@ -95,8 +89,6 @@ public class CachedReviewRepository : IReviewRepository
 
     public async Task DeleteAsync(Guid id)
     {
-        // For delete, we can't easily know restaurant/user IDs without fetching
-        // So we invalidate the "all" cache and the specific ID cache
         _cache.Remove(AllReviewsKey);
         _cache.Remove(string.Format(ReviewByIdKey, id));
         await _inner.DeleteAsync(id);

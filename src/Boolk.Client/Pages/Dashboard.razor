@@ -14,7 +14,6 @@
 </div>
 
 <div class="container mt-5">
-    <!-- Stats Grid -->
     <div class="grid grid-4 mb-5">
         <div class="stats-card fade-in">
             <div class="stats-number">@totalRestaurants</div>
@@ -35,7 +34,6 @@
     </div>
 
     <div class="grid grid-2 mb-5">
-        <!-- Restaurant Types Distribution -->
         <div class="card fade-in" style="margin-top: 2rem;animation-delay: 0.2s">
             <div class="card-header">
                 <h2 class="card-title">🍴 Restaurant Types</h2>
@@ -64,7 +62,6 @@
     </div>
 
 
-        <!-- Top Restaurants by Reviews -->
         <div class="card fade-in" style="margin-top: 2rem;animation-delay: 0.2s">
             <div class="card-header">
                 <h2 class="card-title">🏆 Most Reviewed</h2>
@@ -98,7 +95,6 @@
         </div>
     </div>
 
-    <!-- Quick Rankings -->
     <div class="card fade-in" style="margin-top: 2rem;animation-delay: 0.2s">
         <div class="card-header">
             <h2 class="card-title">⚡ Quick Rankings</h2>
@@ -232,7 +228,6 @@
                 new() { Label = "🫔 Kebab", Count = allRestaurants?.Count(r => r.Type == "Kebab") ?? 0, Gradient = "var(--secondary-gradient)",BarHeight = 8}
             };
 
-            // Get top reviewed restaurants
             if (allReviews.Any() && allRestaurants != null)
             {
                 var reviewCounts = allReviews

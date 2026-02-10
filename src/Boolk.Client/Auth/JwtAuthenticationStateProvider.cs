@@ -5,10 +5,6 @@ using Microsoft.AspNetCore.Components.Authorization;
 
 namespace Boolk.Client.Auth;
 
-/// <summary>
-/// Custom AuthenticationStateProvider that reads JWT tokens from LocalStorage.
-/// Enables Blazor's authorization system to work with our JWT-based API.
-/// </summary>
 public class JwtAuthenticationStateProvider : AuthenticationStateProvider
 {
     private readonly ILocalStorageService _localStorage;
@@ -28,12 +24,10 @@ public class JwtAuthenticationStateProvider : AuthenticationStateProvider
             if (string.IsNullOrEmpty(token))
                 return new AuthenticationState(_anonymous);
 
-            // Remove quotes if stored as JSON string
             token = token.Trim('"');
             
             var claims = ParseClaimsFromJwt(token);
             
-            // Check if token is expired
             var expClaim = claims.FirstOrDefault(c => c.Type == "exp");
             if (expClaim != null)
             {
@@ -56,17 +50,11 @@ public class JwtAuthenticationStateProvider : AuthenticationStateProvider
         }
     }
 
-    /// <summary>
-    /// Notify that the authentication state has changed (call after login/logout).
-    /// </summary>
     public void NotifyAuthenticationStateChanged()
     {
         NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
     }
 
-    /// <summary>
-    /// Parse claims from a JWT token string.
-    /// </summary>
     private static IEnumerable<Claim> ParseClaimsFromJwt(string jwt)
     {
         var handler = new JwtSecurityTokenHandler();

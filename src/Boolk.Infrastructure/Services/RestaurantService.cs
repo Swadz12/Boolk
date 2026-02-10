@@ -9,9 +9,6 @@ using Boolk.Application.Events;
 
 namespace Boolk.Infrastructure.Services;
 
-/// <summary>
-/// Restaurant service implementation using Factory pattern.
-/// </summary>
 public class RestaurantService : IRestaurantService
 {
     private readonly IUnitOfWork _unitOfWork;
@@ -57,10 +54,8 @@ public class RestaurantService : IRestaurantService
 
     public async Task<RestaurantDto> CreateAsync(CreateRestaurantRequest request)
     {
-        // Use Factory pattern for restaurant creation
         var restaurant = _factory.Create(request.Type, request.Name, request.City);
         
-        // Fetch menu from external API (optional - restaurant created even if this fails)
         Menu? menu = null;
         try
         {
@@ -72,7 +67,6 @@ public class RestaurantService : IRestaurantService
         }
         catch
         {
-            // Menu fetch failed - continue without menu (menu is optional)
         }
         
         await _unitOfWork.Restaurants.CreateAsync(restaurant);
@@ -118,7 +112,6 @@ public class RestaurantService : IRestaurantService
 
     public async Task<IEnumerable<RestaurantDto>> GetRankedAsync(string strategy)
     {
-        // Delegate to the ranking service with Strategy pattern
         return await _rankingService.GetRankedRestaurantsAsync(strategy);
     }
 
@@ -134,4 +127,3 @@ public class RestaurantService : IRestaurantService
         );
     }
 }
-

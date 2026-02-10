@@ -2,17 +2,12 @@ using Boolk.Domain.Entities;
 
 namespace Boolk.Domain.Factories;
 
-/// <summary>
-/// Factory for creating restaurant instances based on type.
-/// Implements an extensible Factory pattern allowing runtime registration.
-/// </summary>
 public class RestaurantFactory
 {
     private readonly Dictionary<string, Func<string, string, RestaurantBase>> _creators = new();
 
     public RestaurantFactory()
     {
-        // Register default types
         Register("fastfood", (name, city) => new FastFoodRestaurant { Id = Guid.NewGuid(), Name = name, City = city });
         Register("fastfoodrestaurant", (name, city) => new FastFoodRestaurant { Id = Guid.NewGuid(), Name = name, City = city });
         Register("studentbar", (name, city) => new StudentBar { Id = Guid.NewGuid(), Name = name, City = city });
@@ -27,37 +22,26 @@ public class RestaurantFactory
         Register("sushi", (name, city) => new Sushi { Id = Guid.NewGuid(), Name = name, City = city });
     }
 
-    /// <summary>
-    /// Register a new restaurant type creator. Allows runtime extension.
-    /// </summary>
     public void Register(string type, Func<string, string, RestaurantBase> creator)
     {
         _creators[type.ToLower()] = creator;
     }
 
-    /// <summary>
-    /// Reconstruct a restaurant from persisted data with a specific ID.
-    /// Used by repositories when mapping from database snapshots.
-    /// </summary>
     public RestaurantBase? CreateFromData(string type, string name, string city, Guid id)
     {
-        // Handle both full type names and short names
         var normalizedType = type.ToLower().Replace("restaurant", "");
         
         if (_creators.TryGetValue(normalizedType, out var creator) || 
             _creators.TryGetValue(type.ToLower(), out creator))
         {
             var restaurant = creator(name, city);
-            restaurant.Id = id;  // Override the auto-generated ID
+            restaurant.Id = id; 
             return restaurant;
         }
         
         return null;
     }
 
-    /// <summary>
-    /// Create a restaurant of the specified type.
-    /// </summary>
     public RestaurantBase Create(string type, string name, string city)
     {
         if (_creators.TryGetValue(type.ToLower(), out var creator))
@@ -68,8 +52,5 @@ public class RestaurantFactory
         throw new ArgumentException($"Unknown restaurant type: {type}. Available types: {string.Join(", ", _creators.Keys)}");
     }
 
-    /// <summary>
-    /// Get all registered restaurant type names.
-    /// </summary>
     public IEnumerable<string> GetRegisteredTypes() => _creators.Keys;
 }

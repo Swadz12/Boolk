@@ -16,7 +16,6 @@
 
 <div class="container mt-5">
     <div class="grid grid-2">
-        <!-- Add Review Form -->
         <div class="card fade-in">
             <div class="card-header">
                 <h2 class="card-title">⭐ Add New Review</h2>
@@ -105,7 +104,6 @@
             }
         </div>
 
-        <!-- Review Stats -->
         <div class="card fade-in" style="animation-delay: 0.1s">
             <div class="card-header">
                 <h2 class="card-title">📊 Review Statistics</h2>
@@ -140,7 +138,6 @@
         </div>
     </div>
 
-    <!-- Existing Reviews -->
     @if (reviews != null && reviews.Any())
     {
         <div class="card mt-5 fade-in" style="margin-top: 2rem;animation-delay: 0.2s">
@@ -223,7 +220,6 @@
             currentUser = await AuthClient.GetCurrentUserAsync();
             await LoadData();
             
-            // Start SignalR connection
             if (!_signalRStarted)
             {
                 _signalRStarted = true;

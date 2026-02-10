@@ -5,17 +5,12 @@ using Microsoft.Extensions.Options;
 
 namespace Boolk.Infrastructure.Caching;
 
-/// <summary>
-/// Caching decorator for IRestaurantRepository.
-/// Caches read operations and invalidates on write operations.
-/// </summary>
 public class CachedRestaurantRepository : IRestaurantRepository
 {
     private readonly IRestaurantRepository _inner;
     private readonly IMemoryCache _cache;
     private readonly CacheOptions _options;
 
-    // Cache key patterns
     private const string AllRestaurantsKey = "restaurants:all:{0}:{1}";
     private const string RestaurantByIdKey = "restaurants:id:{0}";
     private const string RestaurantCountKey = "restaurants:count";
@@ -63,7 +58,6 @@ public class CachedRestaurantRepository : IRestaurantRepository
         });
     }
 
-    // Write operations: Invalidate cache before delegating
     public async Task<RestaurantBase> CreateAsync(RestaurantBase restaurant)
     {
         InvalidateRestaurantCaches();
@@ -86,12 +80,7 @@ public class CachedRestaurantRepository : IRestaurantRepository
 
     private void InvalidateRestaurantCaches()
     {
-        // Invalidate count cache - this is always needed
         _cache.Remove(RestaurantCountKey);
         
-        // Note: For pattern-based invalidation of "all" keys,
-        // IMemoryCache doesn't support wildcards. The cached "all" queries
-        // will naturally expire based on TTL. For immediate invalidation,
-        // consider using a cache key registry in the future.
     }
 }

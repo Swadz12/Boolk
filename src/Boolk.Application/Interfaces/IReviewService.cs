@@ -2,9 +2,6 @@ using Boolk.Application.DTOs;
 
 namespace Boolk.Application.Interfaces;
 
-/// <summary>
-/// Service interface for review business logic.
-/// </summary>
 public interface IReviewService
 {
     Task<IEnumerable<ReviewDto>> GetAllAsync();

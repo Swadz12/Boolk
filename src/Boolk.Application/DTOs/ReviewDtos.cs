@@ -1,8 +1,5 @@
 namespace Boolk.Application.DTOs;
 
-/// <summary>
-/// DTO for review data sent over the API.
-/// </summary>
 public record ReviewDto(
     Guid Id,
     Guid UserId,
@@ -14,9 +11,6 @@ public record ReviewDto(
     DateTime CreatedAt
 );
 
-/// <summary>
-/// Request DTO for creating a new review.
-/// </summary>
 public record CreateReviewRequest(
     Guid RestaurantId,
     double Price,

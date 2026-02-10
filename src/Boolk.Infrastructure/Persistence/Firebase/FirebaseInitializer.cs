@@ -4,18 +4,12 @@ using Google.Cloud.Firestore;
 
 namespace Boolk.Infrastructure.Persistence.Firebase;
 
-/// <summary>
-/// Configuration for Firebase connection.
-/// </summary>
 public class FirebaseConfig
 {
     public string ProjectId { get; set; } = string.Empty;
     public string CredentialsPath { get; set; } = string.Empty;
 }
 
-/// <summary>
-/// Initializes and provides Firebase database connections.
-/// </summary>
 public static class FirebaseInitializer
 {
     private static FirestoreDb? _firestoreDb;

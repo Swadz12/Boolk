@@ -1,16 +1,11 @@
 using Boolk.Application.DTOs;
 using Boolk.Application.Interfaces;
-using Boolk.Application.DTOs;
-using Boolk.Application.Interfaces;
 using Boolk.Domain.Entities;
 using MediatR;
 using Boolk.Application.Events;
 
 namespace Boolk.Infrastructure.Services;
 
-/// <summary>
-/// Review service implementation.
-/// </summary>
 public class ReviewService : IReviewService
 {
     private readonly IUnitOfWork _unitOfWork;

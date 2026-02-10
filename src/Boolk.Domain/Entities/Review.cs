@@ -1,8 +1,5 @@
 namespace Boolk.Domain.Entities;
 
-/// <summary>
-/// Represents a review of a restaurant by a user.
-/// </summary>
 public class Review
 {
     public Guid Id { get; set; }

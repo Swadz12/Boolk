@@ -7,28 +7,18 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Boolk.Client;
 
-/// <summary>
-/// Extension methods for configuring Client services in DI container.
-/// </summary>
 public static class DependencyInjection
 {
-    /// <summary>
-    /// Adds Client layer services (API clients, authentication) to the DI container.
-    /// </summary>
     public static IServiceCollection AddBoolkClient(
         this IServiceCollection services, 
         string apiBaseUrl = "https://localhost:5001")
     {
-        // Add LocalStorage for token persistence
         services.AddBlazoredLocalStorage();
         
-        // Configure HttpClient with base address
-        // Configure HttpClient with base address and ignoring SSL errors for localhost
         services.AddScoped(sp => 
         {
             var handler = new HttpClientHandler();
             
-            // Bypass SSL certificate validation for development (localhost)
             if (apiBaseUrl.Contains("localhost"))
             {
                 handler.ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator;
@@ -40,21 +30,17 @@ public static class DependencyInjection
             };
         });
         
-        // Register API clients
         services.AddScoped<AuthApiClient>();
         services.AddScoped<RestaurantApiClient>();
         services.AddScoped<ReviewApiClient>();
         
-        // Register Real-Time Service
         services.AddScoped<RankingRealTimeService>(sp => 
             new RankingRealTimeService($"{apiBaseUrl}/hubs/ranking"));
         
-        // Register authentication state provider
         services.AddScoped<JwtAuthenticationStateProvider>();
         services.AddScoped<AuthenticationStateProvider>(sp => 
             sp.GetRequiredService<JwtAuthenticationStateProvider>());
         
-        // Add authorization services
         services.AddAuthorizationCore();
         
         return services;

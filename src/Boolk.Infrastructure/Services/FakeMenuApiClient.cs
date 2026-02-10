@@ -3,10 +3,6 @@ using Boolk.Domain.Entities;
 
 namespace Boolk.Infrastructure.Services;
 
-/// <summary>
-/// Fake menu API client for development and testing.
-/// Returns realistic mock data based on restaurant type.
-/// </summary>
 public class FakeMenuApiClient : IMenuApiClient
 {
     private readonly Dictionary<string, Func<Menu>> _menuGenerators;
@@ -27,7 +23,6 @@ public class FakeMenuApiClient : IMenuApiClient
 
     public async Task<Menu?> GetMenuAsync(string restaurantName, string city, string restaurantType)
     {
-        // Simulate network delay
         await Task.Delay(50);
         
         if (_menuGenerators.TryGetValue(restaurantType, out var generator))
