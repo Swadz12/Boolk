@@ -2,6 +2,7 @@ using Blazored.LocalStorage;
 using Boolk.Client.ApiClients;
 using Boolk.Client.Services;
 using Boolk.Client.Auth;
+using Boolk.Client.ViewModels;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -42,7 +43,17 @@ public static class DependencyInjection
             sp.GetRequiredService<JwtAuthenticationStateProvider>());
         
         services.AddAuthorizationCore();
-        
+
+        // ViewModels
+        services.AddTransient<LoginViewModel>();
+        services.AddTransient<RegisterViewModel>();
+        services.AddTransient<IndexViewModel>();
+        services.AddTransient<RestaurantDetailViewModel>();
+        services.AddTransient<ProfileViewModel>();
+        services.AddTransient<RestaurantsViewModel>();
+        services.AddTransient<ReviewsViewModel>();
+        services.AddTransient<DashboardViewModel>();
+
         return services;
     }
 }

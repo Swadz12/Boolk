@@ -1,5 +1,6 @@
 @page "/"
-@inject RestaurantApiClient RestaurantClient
+@inject IndexViewModel VM
+@implements IDisposable
 
 <PageTitle>Home - Boolk</PageTitle>
 
@@ -8,8 +9,8 @@
         <h1>Discover the Best Restaurants</h1>
         <p>Find top-rated restaurants ranked by value, price, and satisfaction</p>
         <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
-            <button class="btn btn-primary" @onclick="LoadRankedRestaurants">
-                @if (isLoading)
+            <button class="btn btn-primary" @onclick="VM.LoadRankedRestaurantsAsync">
+                @if (VM.IsLoading)
                 {
                     <span class="spinner" style="width: 20px; height: 20px; border-width: 2px; display: inline-block; margin-right: 0.5rem;"></span>
                 }
@@ -27,14 +28,14 @@
         </div>
         <div class="mb-4">
             <label for="strategySelect" class="form-label" style="margin-top: 1rem; margin-bottom: 1rem">Select Ranking Strategy:</label>
-            <select @bind="selectedStrategy" @bind:event="onchange" class="form-select" id="strategySelect">
+            <select @bind="VM.SelectedStrategy" @bind:event="onchange" class="form-select" id="strategySelect">
                 <option value="best-value">🏆 Best Value - Best satiety per price</option>
                 <option value="cheapest">💰 Cheapest - Lowest average price</option>
                 <option value="most-filling">🍔 Most Filling - Highest satiety level</option>
             </select>
         </div>
-        <button class="btn btn-primary" @onclick="LoadRankedRestaurants" disabled="@isLoading" style="margin-top: 2rem">
-            @if (isLoading)
+        <button class="btn btn-primary" @onclick="VM.LoadRankedRestaurantsAsync" disabled="@VM.IsLoading" style="margin-top: 2rem">
+            @if (VM.IsLoading)
             {
                 <span class="spinner" style="width: 20px; height: 20px; border-width: 2px; display: inline-block; margin-right: 0.5rem;"></span>
             }
@@ -42,18 +43,18 @@
         </button>
     </div>
 
-    @if (rankedRestaurants != null && rankedRestaurants.Any())
+    @if (VM.RankedRestaurants != null && VM.RankedRestaurants.Any())
     {
         <div class="card">
             <div class="card-header">
                 <h2 class="card-title">Top Restaurants</h2>
             </div>
             <div class="grid grid-3" style="padding: 1rem;">
-                @foreach (var (restaurant, index) in rankedRestaurants.Select((r, i) => (r, i + 1)))
+                @foreach (var (restaurant, index) in VM.RankedRestaurants.Select((r, i) => (r, i + 1)))
                 {
                     <a @key="restaurant.Id" href="/restaurant/@restaurant.Id" style="text-decoration: none; color: inherit;">
                         <div class="restaurant-card fade-in" style="@($"animation-delay: {index * 0.1}s")">
-                            <div class="rank-badge @GetRankClass(index)">
+                            <div class="rank-badge @VM.GetRankClass(index)">
                                 @index
                             </div>
                             <h3 class="restaurant-name">@restaurant.Name</h3>
@@ -65,7 +66,7 @@
             </div>
         </div>
     }
-    else if (rankedRestaurants != null && !rankedRestaurants.Any())
+    else if (VM.RankedRestaurants != null && !VM.RankedRestaurants.Any())
     {
         <div class="card">
             <div style="text-align: center; padding: 3rem;">
@@ -93,38 +94,6 @@
 </div>
 
 @code {
-    private List<RestaurantDto>? rankedRestaurants;
-    private bool isLoading = false;
-    private string selectedStrategy = "best-value";
-
-    private async Task LoadRankedRestaurants()
-    {
-        isLoading = true;
-        StateHasChanged();
-        
-        try
-        {
-            await Task.Delay(300);
-            rankedRestaurants = (await RestaurantClient.GetRankedAsync(selectedStrategy))?.ToList();
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error loading restaurants: {ex.Message}");
-        }
-        finally
-        {
-            isLoading = false;
-        }
-    }
-
-    private string GetRankClass(int rank)
-    {
-        return rank switch
-        {
-            1 => "gold",
-            2 => "silver",
-            3 => "bronze",
-            _ => ""
-        };
-    }
+    protected override void OnInitialized() => VM.OnStateChanged += StateHasChanged;
+    public void Dispose() => VM.OnStateChanged -= StateHasChanged;
 }

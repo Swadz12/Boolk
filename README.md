@@ -51,6 +51,30 @@ src/
   - **Most Filling**: Ranks by highest average satiety level
 - **Live Ranking Calculation**: Rankings are computed on-the-fly based on current data.
 
+## Build & Run
+
+**Prerequisites**: [.NET SDK](https://dotnet.microsoft.com/download)
+
+**Windows (PowerShell):**
+```powershell
+./run.ps1
+```
+
+**macOS / Linux:**
+```bash
+chmod +x run.sh
+./run.sh
+```
+
+This builds the solution and starts both the API and the Client.
+
+| Service  | URL                                  |
+|----------|--------------------------------------|
+| Frontend | http://localhost:5000                 |
+| Swagger  | http://localhost:5001/swagger         |
+
+Press `Ctrl+C` to stop both processes.
+
 ## Usage
 
 1. **Add Restaurants**: Navigate to `/restaurants` and add new restaurants

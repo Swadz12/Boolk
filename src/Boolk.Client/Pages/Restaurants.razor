@@ -1,6 +1,5 @@
 @page "/restaurants"
-@inject RestaurantApiClient RestaurantClient
-@inject RankingRealTimeService RealTimeService
+@inject RestaurantsViewModel VM
 @implements IAsyncDisposable
 
 <PageTitle>Restaurants - Boolk</PageTitle>
@@ -18,11 +17,11 @@
             <div class="card-header">
                 <h2 class="card-title">➕ Add New Restaurant</h2>
             </div>
-            <EditForm Model="@newRestaurant" OnValidSubmit="@HandleSubmit">
+            <EditForm Model="@VM.NewRestaurant" OnValidSubmit="@VM.CreateRestaurantAsync">
                 <DataAnnotationsValidator />
                 <div class="mb-3">
                     <label class="form-label" style="margin: 0.55rem; display: block;">Type:</label>
-                    <InputSelect @bind-Value="restaurantType" class="form-select">
+                    <InputSelect @bind-Value="VM.RestaurantType" class="form-select">
                         <option value="">Select type...</option>
                         <option value="fastfood">🍟 Fast Food</option>
                         <option value="studentbar">🍺 Student Bar</option>
@@ -36,16 +35,16 @@
                 </div>
                 <div class="mb-3">
                     <label class="form-label" style="margin: 0.5rem; display: block;">Name:</label>
-                    <InputText @bind-Value="newRestaurant.Name" class="form-control" placeholder="Enter restaurant name" />
-                    <ValidationMessage For="@(() => newRestaurant.Name)" class="validation-message" />
+                    <InputText @bind-Value="VM.NewRestaurant.Name" class="form-control" placeholder="Enter restaurant name" />
+                    <ValidationMessage For="@(() => VM.NewRestaurant.Name)" class="validation-message" />
                 </div>
                 <div class="mb-3">
                     <label class="form-label" style="margin: 0.5rem; display: block;">City:</label>
-                    <InputText @bind-Value="newRestaurant.City" class="form-control" placeholder="Enter city" />
-                    <ValidationMessage For="@(() => newRestaurant.City)" class="validation-message" />
+                    <InputText @bind-Value="VM.NewRestaurant.City" class="form-control" placeholder="Enter city" />
+                    <ValidationMessage For="@(() => VM.NewRestaurant.City)" class="validation-message" />
                 </div>
-                <button type="submit" class="btn btn-primary" disabled="@isSubmitting" style="margin-top: 1rem;">
-                    @if (isSubmitting)
+                <button type="submit" class="btn btn-primary" disabled="@VM.IsSubmitting" style="margin-top: 1rem;">
+                    @if (VM.IsSubmitting)
                     {
                         <span class="spinner"></span>
                     }
@@ -53,10 +52,10 @@
                 </button>
             </EditForm>
 
-            @if (!string.IsNullOrEmpty(message))
+            @if (!string.IsNullOrEmpty(VM.Message))
             {
-                <div class="alert @(message.Contains("Error") ? "alert-error" : "alert-success") mt-3">
-                    @message
+                <div class="alert @(VM.Message.Contains("Error") ? "alert-error" : "alert-success") mt-3">
+                    @VM.Message
                 </div>
             }
         </div>
@@ -66,35 +65,35 @@
                 <h2 class="card-title">📊 Statistics</h2>
             </div>
             <div class="stats-card" style="background: transparent; border: none; padding: 0;">
-                <div class="stats-number">@totalRestaurants</div>
+                <div class="stats-number">@VM.TotalRestaurants</div>
                 <div class="stats-label">Total Restaurants</div>
             </div>
              <div style="margin-top: 1rem;">
-                <p>Page @currentPage of @totalPages</p>
+                <p>Page @VM.CurrentPage of @VM.TotalPages</p>
             </div>
         </div>
     </div>
 
-    @if (restaurants != null && restaurants.Any())
+    @if (VM.Restaurants != null && VM.Restaurants.Any())
     {
         <div class="card fade-in" style="margin-top: 2rem;animation-delay: 0.2s">
             <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
                 <h2 class="card-title">🍴 All Restaurants</h2>
                 <div>
-                     <button class="btn btn-secondary" @onclick="PrevPage" disabled="@(currentPage == 1)" style="padding: 0.5rem 1rem; margin-right: 0.5rem;">
+                     <button class="btn btn-secondary" @onclick="VM.PrevPageAsync" disabled="@(VM.CurrentPage == 1)" style="padding: 0.5rem 1rem; margin-right: 0.5rem;">
                         ⬅️ Prev
                     </button>
-                    <span style="margin: 0 1rem;">Page @currentPage</span>
-                    <button class="btn btn-secondary" @onclick="NextPage" disabled="@(!hasMorePages)" style="padding: 0.5rem 1rem;">
+                    <span style="margin: 0 1rem;">Page @VM.CurrentPage</span>
+                    <button class="btn btn-secondary" @onclick="VM.NextPageAsync" disabled="@(!VM.HasMorePages)" style="padding: 0.5rem 1rem;">
                         Next ➡️
                     </button>
-                    <button class="btn btn-secondary" @onclick="RefreshRestaurants" style="padding: 0.5rem 1rem; font-size: 0.85rem; margin-left: 1rem;">
+                    <button class="btn btn-secondary" @onclick="VM.RefreshAsync" style="padding: 0.5rem 1rem; font-size: 0.85rem; margin-left: 1rem;">
                         🔄 Refresh
                     </button>
                 </div>
             </div>
             <div class="grid grid-3" style="padding: 1rem;">
-                @foreach (var (restaurant, index) in restaurants.Select((r, i) => (r, i)))
+                @foreach (var (restaurant, index) in VM.Restaurants.Select((r, i) => (r, i)))
                 {
                     <a @key="restaurant.Id" href="/restaurant/@restaurant.Id" style="text-decoration: none; color: inherit;">
                         <div class="restaurant-card fade-in" style="@($"animation-delay: {index * 0.05}s")">
@@ -110,11 +109,11 @@
             </div>
         </div>
     }
-    else if (restaurants != null && !restaurants.Any())
+    else if (VM.Restaurants != null && !VM.Restaurants.Any())
     {
         <div class="card mt-5 fade-in" style="animation-delay: 0.2s">
              <div class="card-header" style="display: flex; justify-content: flex-end;">
-                 <button class="btn btn-secondary" @onclick="PrevPage" disabled="@(currentPage == 1)" style="padding: 0.5rem 1rem; margin-right: 0.5rem;">
+                 <button class="btn btn-secondary" @onclick="VM.PrevPageAsync" disabled="@(VM.CurrentPage == 1)" style="padding: 0.5rem 1rem; margin-right: 0.5rem;">
                         ⬅️ Prev
                  </button>
             </div>
@@ -130,24 +129,14 @@
 </div>
 
 @code {
-    private NewRestaurantModel newRestaurant = new();
-    private string restaurantType = "fastfood";
-    private string message = "";
-    private bool isSubmitting = false;
-    private List<RestaurantDto>? restaurants;
-    
-    private int currentPage = 1;
-    private int pageSize = 6;
-    private int totalRestaurants = 0;
-    private int totalPages = 1;
-    private bool hasMorePages = false;
+    private bool _signalRStarted;
 
-    private bool _signalRStarted = false;
+    protected override void OnInitialized() => VM.OnStateChanged += StateHasChanged;
 
     protected override async Task OnInitializedAsync()
     {
-        RealTimeService.OnRankingsUpdated += HandleRankingsUpdate;
-        await LoadRestaurants();
+        VM.InvokeAsync = fn => InvokeAsync(fn);
+        await VM.InitializeAsync();
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -155,107 +144,13 @@
         if (firstRender && !_signalRStarted)
         {
             _signalRStarted = true;
-            try
-            {
-                await RealTimeService.StartAsync();
-                Console.WriteLine("[Restaurants] SignalR connection started");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"[Restaurants] SignalR connection failed: {ex.Message}");
-            }
+            await VM.StartSignalRAsync();
         }
-    }
-
-    private void HandleRankingsUpdate(IEnumerable<RestaurantDto> rankings)
-    {
-        InvokeAsync(async () =>
-        {
-            await LoadRestaurants();
-            StateHasChanged();
-        });
     }
 
     public async ValueTask DisposeAsync()
     {
-        RealTimeService.OnRankingsUpdated -= HandleRankingsUpdate;
-        await RealTimeService.DisposeAsync();
-    }
-
-    private async Task LoadRestaurants()
-    {
-        try
-        {
-            var result = await RestaurantClient.GetAllAsync(currentPage, pageSize);
-            if (result != null)
-            {
-                restaurants = result.Items.ToList();
-                totalRestaurants = result.TotalCount;
-                totalPages = (int)Math.Ceiling((double)result.TotalCount / pageSize);
-                hasMorePages = currentPage < totalPages;
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error loading restaurants: {ex.Message}");
-        }
-    }
-
-    private async Task HandleSubmit()
-    {
-        isSubmitting = true;
-        message = "";
-        StateHasChanged();
-
-        try
-        {
-            await RestaurantClient.CreateAsync(newRestaurant.Name, newRestaurant.City, restaurantType);
-            message = $"✅ Restaurant '{newRestaurant.Name}' added successfully!";
-            newRestaurant = new NewRestaurantModel();
-            restaurantType = "fastfood";
-            
-            currentPage = 1;
-            await LoadRestaurants();
-            
-            await Task.Delay(3000);
-            message = "";
-        }
-        catch (Exception ex)
-        {
-            message = $"❌ Error: {ex.Message}";
-        }
-        finally
-        {
-            isSubmitting = false;
-        }
-    }
-
-    private async Task RefreshRestaurants()
-    {
-        await LoadRestaurants();
-    }
-    
-    private async Task NextPage()
-    {
-        if (hasMorePages)
-        {
-            currentPage++;
-            await LoadRestaurants();
-        }
-    }
-
-    private async Task PrevPage()
-    {
-        if (currentPage > 1)
-        {
-            currentPage--;
-            await LoadRestaurants();
-        }
-    }
-
-    class NewRestaurantModel
-    {
-        public string Name { get; set; } = "";
-        public string City { get; set; } = "";
+        VM.OnStateChanged -= StateHasChanged;
+        await VM.DisposeAsync();
     }
 }

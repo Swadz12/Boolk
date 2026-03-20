@@ -1,14 +1,12 @@
 @page "/profile"
-@inject AuthApiClient AuthClient
-@inject ReviewApiClient ReviewClient
-@inject RestaurantApiClient RestaurantClient
+@inject ProfileViewModel VM
 @inject NavigationManager Nav
 @inject IJSRuntime JsRuntime
-@inject JwtAuthenticationStateProvider AuthStateProvider
+@implements IDisposable
 
 <PageTitle>Profile - Boolk</PageTitle>
 
-@if (!isInitialized)
+@if (!VM.IsInitialized)
 {
     <p>Loading...</p>
 }
@@ -16,9 +14,9 @@ else
 {
     <div class="hero">
         <div class="hero-content">
-            @if (currentUser != null)
+            @if (VM.CurrentUser != null)
             {
-                <h1>👋 Welcome back, @currentUser.Name!</h1>
+                <h1>👋 Welcome back, @VM.CurrentUser.Name!</h1>
                 <p>Manage your account and reviews</p>
             }
             else
@@ -26,9 +24,9 @@ else
                 <h1>👤 Your Profile</h1>
                 <p>Manage your account and authentication</p>
             }
-           
 
-            @if (currentUser == null)
+
+            @if (VM.CurrentUser == null)
             {
                 <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
                     <a href="/login" class="btn btn-primary">🔐 Login</a>
@@ -37,7 +35,7 @@ else
             }
             else
             {
-                <button class="btn btn-danger" @onclick="Logout">
+                <button class="btn btn-danger" @onclick="HandleLogout">
                     🚪 Logout
                 </button>
             }
@@ -46,7 +44,7 @@ else
 
     <div class="container mt-5">
 
-        @if (currentUser == null)
+        @if (VM.CurrentUser == null)
         {
             <div class="card mb-5">
                 <div class="card-header">
@@ -92,28 +90,28 @@ else
 
                 <div class="grid grid-2" style="padding: 1.5rem; align-items: center;">
                     <div>
-                        <h3>👤Name: @currentUser.Name</h3>
-                        <h3>🗓️Birth Date: @currentUser.BirthDate.ToLocalTime().ToString("MM/dd/yyyy")</h3>
-                        <h3>✉️Email: @currentUser.Email</h3>
+                        <h3>👤Name: @VM.CurrentUser.Name</h3>
+                        <h3>🗓️Birth Date: @VM.CurrentUser.BirthDate.ToLocalTime().ToString("MM/dd/yyyy")</h3>
+                        <h3>✉️Email: @VM.CurrentUser.Email</h3>
                     </div>
 
-                    
+
                 </div>
             </div>
 
-            @if (userReviews != null && userReviews.Any())
+            @if (VM.UserReviews != null && VM.UserReviews.Any())
             {
                 <div class="card mb-5" style="margin-top: 2rem">
                     <div class="card-header">
                         <h2 class="card-title">💬 Your Reviews</h2>
                     </div>
                     <div style="padding: 1rem;">
-                        @foreach (var review in userReviews)
+                        @foreach (var review in VM.UserReviews)
                         {
                             <div @key="review.Id" class="review-card mb-3">
                                 <div style="display:flex; justify-content:space-between; align-items:center;">
                                     <div>
-                                        <strong>@GetRestaurantName(review.RestaurantId)</strong>
+                                        <strong>@VM.GetRestaurantName(review.RestaurantId)</strong>
                                         <div style="font-size:0.8rem; color: var(--text-secondary);">
                                             Review ID: @review.Id.ToString().Substring(0,8)...
                                         </div>
@@ -121,7 +119,7 @@ else
                                             @review.CreatedAt.ToLocalTime().ToString("dd MMM yyyy HH:mm")
                                         </div>
                                     </div>
-                                    <button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteReview(review.Id)">
+                                    <button class="btn btn-sm btn-outline-danger" @onclick="() => VM.DeleteReviewAsync(review.Id)">
                                         🗑 Delete
                                     </button>
                                 </div>
@@ -142,56 +140,29 @@ else
 }
 
 @code {
-    private bool isInitialized = false;
-    private bool firstRenderDone = false;
-    private UserDto? currentUser;
-    private List<ReviewDto>? userReviews;
-    private List<RestaurantDto>? restaurants;
-    
+    private bool _firstRenderDone;
+
+    protected override void OnInitialized()
+    {
+        VM.OnStateChanged += StateHasChanged;
+        VM.ConfirmAction = msg => JsRuntime.InvokeAsync<bool>("confirm", msg).AsTask();
+    }
+
+    public void Dispose() => VM.OnStateChanged -= StateHasChanged;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender && !firstRenderDone)
+        if (firstRender && !_firstRenderDone)
         {
-            firstRenderDone = true;
-
-            currentUser = await AuthClient.GetCurrentUserAsync();
-            isInitialized = true;
-
-            if (currentUser != null)
-            {
-                userReviews = (await ReviewClient.GetByUserAsync(currentUser.Id))?.ToList();
-                var result = await RestaurantClient.GetAllAsync(1, 1000);
-                restaurants = result?.Items.ToList();
-            }
-
+            _firstRenderDone = true;
+            await VM.InitializeAsync();
             StateHasChanged();
         }
     }
 
-    private async Task Logout()
+    private async Task HandleLogout()
     {
-        await AuthClient.LogoutAsync();
-        AuthStateProvider.NotifyAuthenticationStateChanged();
+        await VM.LogoutAsync();
         Nav.NavigateTo("/");
-    }
-
-    private async Task DeleteReview(Guid reviewId)
-    {
-        bool confirmed = await JsRuntime.InvokeAsync<bool>("confirm", "Are you sure you want to delete this review?");
-        if (!confirmed) return;
-
-        await ReviewClient.DeleteAsync(reviewId);
-
-        if (currentUser != null)
-        {
-            userReviews = (await ReviewClient.GetByUserAsync(currentUser.Id))?.ToList();
-        }
-    }
-
-    private string GetRestaurantName(Guid restaurantId)
-    {
-        var restaurant = restaurants?.FirstOrDefault(r => r.Id == restaurantId);
-        return restaurant != null ? $"{restaurant.Name} - {restaurant.City}" : "Unknown Restaurant";
     }
 }
