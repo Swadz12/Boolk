@@ -17,9 +17,6 @@ public class RestaurantsController : ControllerBase
         _restaurantService = restaurantService;
     }
 
-    /// <summary>
-    /// Get all restaurants with pagination.
-    /// </summary>
     [HttpGet]
     public async Task<ActionResult<PagedResult<RestaurantDto>>> GetAll(
         [FromQuery] int page = 1, 
@@ -29,9 +26,6 @@ public class RestaurantsController : ControllerBase
         return Ok(result);
     }
 
-    /// <summary>
-    /// Get a specific restaurant by ID.
-    /// </summary>
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<RestaurantDto>> GetById(Guid id)
     {
@@ -43,9 +37,6 @@ public class RestaurantsController : ControllerBase
         return Ok(result);
     }
 
-    /// <summary>
-    /// Create a new restaurant. Requires authentication.
-    /// </summary>
     [HttpPost]
     [Authorize]
     public async Task<ActionResult<RestaurantDto>> Create([FromBody] CreateRestaurantRequest request)
@@ -54,9 +45,6 @@ public class RestaurantsController : ControllerBase
         return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
     }
 
-    /// <summary>
-    /// Update an existing restaurant. Requires authentication.
-    /// </summary>
     [HttpPut("{id:guid}")]
     [Authorize]
     public async Task<IActionResult> Update(Guid id, [FromBody] UpdateRestaurantRequest request)
@@ -72,9 +60,6 @@ public class RestaurantsController : ControllerBase
         }
     }
 
-    /// <summary>
-    /// Delete a restaurant. Requires authentication.
-    /// </summary>
     [HttpDelete("{id:guid}")]
     [Authorize]
     public async Task<IActionResult> Delete(Guid id)
@@ -83,9 +68,6 @@ public class RestaurantsController : ControllerBase
         return NoContent();
     }
 
-    /// <summary>
-    /// Get ranked restaurants based on strategy.
-    /// </summary>
     [HttpGet("ranked")]
     public async Task<ActionResult<IEnumerable<RestaurantDto>>> GetRanked(
         [FromQuery] string strategy = "best-value")

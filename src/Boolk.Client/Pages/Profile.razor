@@ -14,7 +14,6 @@
 }
 else
 {
-    <!-- HERO -->
     <div class="hero">
         <div class="hero-content">
             @if (currentUser != null)
@@ -49,7 +48,6 @@ else
 
         @if (currentUser == null)
         {
-            <!-- AUTH OPTIONS -->
             <div class="card mb-5">
                 <div class="card-header">
                     <h2 class="card-title">Authentication</h2>
@@ -57,7 +55,6 @@ else
 
                 <div class="grid grid-2" style="padding: 1.5rem;">
 
-                    <!-- EMAIL AUTH -->
                     <div class="restaurant-card">
                         <h3>📧 Email & Password</h3>
                         <p style="color: var(--text-secondary); margin-bottom: 1rem;">
@@ -69,14 +66,12 @@ else
                         </a>
                     </div>
 
-                    <!-- GOOGLE AUTH -->
                     <div class="restaurant-card">
                         <h3>🔵 Google Sign-In</h3>
                         <p style="color: var(--text-secondary); margin-bottom: 1rem;">
                             Sign in quickly using your Google account.
                         </p>
 
-                        <!-- PLACEHOLDER -->
                         <button class="btn btn-outline" disabled>
                             Continue with Google
                         </button>
@@ -90,7 +85,6 @@ else
         }
         else
         {
-            <!-- USER INFO -->
             <div class="card mb-5" style="margin-bottom: 2rem">
                 <div class="card-header">
                     <h2 class="card-title">Account Details</h2>
@@ -107,7 +101,6 @@ else
                 </div>
             </div>
 
-            <!-- USER REVIEWS -->
             @if (userReviews != null && userReviews.Any())
             {
                 <div class="card mb-5" style="margin-top: 2rem">
@@ -162,7 +155,6 @@ else
         {
             firstRenderDone = true;
 
-            // Get current user from API
             currentUser = await AuthClient.GetCurrentUserAsync();
             isInitialized = true;
 

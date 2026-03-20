@@ -3,27 +3,15 @@ using Microsoft.AspNetCore.SignalR.Client;
 
 namespace Boolk.Client.Services;
 
-/// <summary>
-/// Manages SignalR connection for real-time ranking updates.
-/// </summary>
 public class RankingRealTimeService : IAsyncDisposable
 {
     private HubConnection? _connection;
     private readonly string _hubUrl;
     
-    /// <summary>
-    /// Fired when rankings are updated from the server.
-    /// </summary>
     public event Action<IEnumerable<RestaurantDto>>? OnRankingsUpdated;
     
-    /// <summary>
-    /// Fired when a specific restaurant changes.
-    /// </summary>
     public event Action<RestaurantDto, string>? OnRestaurantChanged;
     
-    /// <summary>
-    /// Current connection state.
-    /// </summary>
     public HubConnectionState State => _connection?.State ?? HubConnectionState.Disconnected;
 
     public RankingRealTimeService(string hubUrl)
@@ -31,16 +19,11 @@ public class RankingRealTimeService : IAsyncDisposable
         _hubUrl = hubUrl;
     }
 
-    /// <summary>
-    /// Starts the SignalR connection with automatic reconnection.
-    /// </summary>
     public async Task StartAsync()
     {
-        // If already connected, don't reconnect
         if (_connection != null && _connection.State == HubConnectionState.Connected)
             return;
 
-        // If connection exists but is not connected, dispose and recreate
         if (_connection != null)
         {
             await _connection.DisposeAsync();
@@ -57,7 +40,6 @@ public class RankingRealTimeService : IAsyncDisposable
             })
             .Build();
 
-        // Register handlers
         _connection.On<IEnumerable<RestaurantDto>>("ReceiveRankingsUpdate", rankings =>
         {
             Console.WriteLine($"[RankingRealTimeService] Received {rankings.Count()} rankings update");
@@ -73,9 +55,6 @@ public class RankingRealTimeService : IAsyncDisposable
         Console.WriteLine($"[RankingRealTimeService] Connected to SignalR hub");
     }
 
-    /// <summary>
-    /// Stops the SignalR connection.
-    /// </summary>
     public async Task StopAsync()
     {
         if (_connection != null)

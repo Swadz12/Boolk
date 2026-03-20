@@ -1,22 +1,31 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <!-- This is a solution aggregator project - it doesn't compile any code directly -->
+    <OutputType>Library</OutputType>
+    <!-- Disable auto-generation of assembly attributes to avoid conflicts -->
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Blazored.LocalStorage" Version="4.3.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="8.0.0" />
-  </ItemGroup>
-
+  <!-- Reference projects for convenience (IDE features, etc.) -->
   <ItemGroup>
     <ProjectReference Include="src\Boolk.Client\Boolk.Client.csproj" />
     <ProjectReference Include="src\Boolk.Infrastructure\Boolk.Infrastructure.csproj" />
+    <ProjectReference Include="src\Boolk.API\Boolk.API.csproj" />
+  </ItemGroup>
+
+  <!-- Exclude all subdirectories from compilation - they have their own projects -->
+  <ItemGroup>
+    <Compile Remove="**\*.cs" />
+    <Content Remove="**\*" />
+    <None Remove="Boolk.Tests\**\*" />
+    <None Remove="src\**\*" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
   </ItemGroup>
 
 </Project>
-
-
-

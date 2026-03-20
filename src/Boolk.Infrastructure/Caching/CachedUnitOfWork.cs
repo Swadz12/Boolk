@@ -4,10 +4,6 @@ using Microsoft.Extensions.Options;
 
 namespace Boolk.Infrastructure.Caching;
 
-/// <summary>
-/// Caching decorator for IUnitOfWork.
-/// Wraps the inner UnitOfWork's repositories with caching decorators.
-/// </summary>
 public class CachedUnitOfWork : IUnitOfWork
 {
     private readonly IUnitOfWork _inner;
@@ -33,7 +29,6 @@ public class CachedUnitOfWork : IUnitOfWork
     public IReviewRepository Reviews
         => _reviews ??= new CachedReviewRepository(_inner.Reviews, _cache, _options);
 
-    // Users are not cached (typically low-traffic, auth-sensitive)
     public IUserRepository Users => _inner.Users;
 
     public Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)

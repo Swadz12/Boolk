@@ -11,14 +11,12 @@ using Boolk.Application.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Configure Firebase
 var firebaseConfig = new FirebaseConfig
 {
     ProjectId = builder.Configuration["Firebase:ProjectId"] ?? "boolk-11546",
     CredentialsPath = builder.Configuration["Firebase:CredentialsPath"] ?? "firebase-credentials.json"
 };
 
-// Configure JWT
 var jwtSettings = new JwtSettings
 {
     Secret = builder.Configuration["Jwt:Secret"] ?? "YourSuperSecretKeyThatIsAtLeast32CharactersLong!",
@@ -27,24 +25,18 @@ var jwtSettings = new JwtSettings
     ExpirationMinutes = int.Parse(builder.Configuration["Jwt:ExpirationMinutes"] ?? "60")
 };
 
-// Add Infrastructure services (repos, services, etc.)
 builder.Services.AddInfrastructure(firebaseConfig, jwtSettings);
 
-// Add MediatR
 builder.Services.AddMediatR(cfg => {
     cfg.RegisterServicesFromAssembly(typeof(Boolk.Application.Events.RankingChangedEvent).Assembly);
 });
 
-// Add SignalR
 builder.Services.AddSignalR();
 
-// Register SignalR notifier
 builder.Services.AddScoped<IRealTimeNotifier, SignalRNotifier>();
 
-// Add Controllers
 builder.Services.AddControllers();
 
-// Configure JWT Authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -63,19 +55,17 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddAuthorization();
 
-// Configure CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowBlazorClient", policy =>
     {
-        policy.WithOrigins("https://localhost:5001", "http://localhost:5000")
+        policy.WithOrigins("https://localhost:5000")
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials();
     });
 });
 
-// Configure Swagger with JWT support
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -113,7 +103,6 @@ builder.Services.AddSwaggerGen(c =>
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();

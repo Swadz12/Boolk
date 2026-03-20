@@ -5,9 +5,6 @@ using Microsoft.AspNetCore.SignalR;
 
 namespace Boolk.API.Services;
 
-/// <summary>
-/// SignalR implementation of IRealTimeNotifier.
-/// </summary>
 public class SignalRNotifier : IRealTimeNotifier
 {
     private readonly IHubContext<RankingHub, IRankingHubClient> _hubContext;
@@ -17,12 +14,12 @@ public class SignalRNotifier : IRealTimeNotifier
         _hubContext = hubContext;
     }
 
-    public async Task NotifyRankingsChangedAsync(IEnumerable<RestaurantDto> rankings)
+    public async Task NotifyRankingsChangedAsync()
     {
-        Console.WriteLine($"[SignalRNotifier] Pushing {rankings.Count()} rankings to RankingWatchers group...");
+        Console.WriteLine("[SignalRNotifier] Sending invalidation signal to RankingWatchers group...");
         await _hubContext.Clients.Group("RankingWatchers")
-            .ReceiveRankingsUpdate(rankings);
-        Console.WriteLine("[SignalRNotifier] Push sent to SignalR hub");
+            .ReceiveRankingsUpdate();
+        Console.WriteLine("[SignalRNotifier] Signal sent");
     }
 
     public async Task NotifyRestaurantChangedAsync(RestaurantDto restaurant, string changeType)

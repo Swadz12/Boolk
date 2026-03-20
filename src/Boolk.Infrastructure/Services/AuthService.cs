@@ -6,9 +6,6 @@ using Boolk.Domain.Entities;
 
 namespace Boolk.Infrastructure.Services;
 
-/// <summary>
-/// Authentication service implementation.
-/// </summary>
 public class AuthService : IAuthService
 {
     private readonly IUnitOfWork _unitOfWork;
@@ -29,7 +26,7 @@ public class AuthService : IAuthService
             return new AuthResponse(false, null, null, "User not found");
         }
 
-        if (user.PasswordHash != HashPassword(request.Password))
+        if (!BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash)) 
         {
             return new AuthResponse(false, null, null, "Invalid password");
         }
@@ -55,7 +52,7 @@ public class AuthService : IAuthService
             Email = request.Email,
             Name = request.Name,
             BirthDate = request.BirthDate,
-            PasswordHash = HashPassword(request.Password)
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password)
         };
 
         await _unitOfWork.Users.CreateAsync(user);
@@ -75,9 +72,4 @@ public class AuthService : IAuthService
         return new UserDto(user.Id, user.Email, user.Name, user.BirthDate);
     }
 
-    private static string HashPassword(string password)
-    {
-        using var sha256 = SHA256.Create();
-        return Convert.ToBase64String(sha256.ComputeHash(Encoding.UTF8.GetBytes(password)));
-    }
 }

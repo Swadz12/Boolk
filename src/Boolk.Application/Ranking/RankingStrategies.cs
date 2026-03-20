@@ -2,10 +2,6 @@ using Boolk.Domain.Entities;
 
 namespace Boolk.Application.Ranking;
 
-/// <summary>
-/// Ranks restaurants by best value (satiety per price).
-/// Higher satiety at lower price = higher rank.
-/// </summary>
 public class BestValueStrategy : IRankingStrategy
 {
     public string Name => "best-value";
@@ -32,9 +28,6 @@ public class BestValueStrategy : IRankingStrategy
     }
 }
 
-/// <summary>
-/// Ranks restaurants by average price (cheapest first).
-/// </summary>
 public class CheapestStrategy : IRankingStrategy
 {
     public string Name => "cheapest";
@@ -58,9 +51,6 @@ public class CheapestStrategy : IRankingStrategy
     }
 }
 
-/// <summary>
-/// Ranks restaurants by satiety level (most filling first).
-/// </summary>
 public class MostFillingStrategy : IRankingStrategy
 {
     public string Name => "most-filling";

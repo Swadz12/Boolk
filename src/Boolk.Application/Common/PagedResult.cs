@@ -1,9 +1,5 @@
 namespace Boolk.Application.Common;
 
-/// <summary>
-/// Generic paginated result wrapper for list endpoints.
-/// </summary>
-/// <typeparam name="T">Type of items in the result.</typeparam>
 public class PagedResult<T>
 {
     public List<T> Items { get; set; } = new();

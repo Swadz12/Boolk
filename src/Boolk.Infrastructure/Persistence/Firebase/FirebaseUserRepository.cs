@@ -4,9 +4,6 @@ using Google.Cloud.Firestore;
 
 namespace Boolk.Infrastructure.Persistence.Firebase;
 
-/// <summary>
-/// Firebase implementation of the user repository.
-/// </summary>
 public class FirebaseUserRepository : IUserRepository
 {
     private readonly FirestoreDb _db;

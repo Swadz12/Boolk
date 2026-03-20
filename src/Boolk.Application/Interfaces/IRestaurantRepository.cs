@@ -2,10 +2,6 @@ using Boolk.Domain.Entities;
 
 namespace Boolk.Application.Interfaces;
 
-/// <summary>
-/// Repository interface for restaurant data access.
-/// This abstraction allows swapping database implementations.
-/// </summary>
 public interface IRestaurantRepository
 {
     Task<RestaurantBase?> GetByIdAsync(Guid id);

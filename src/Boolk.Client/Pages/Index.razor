@@ -104,7 +104,7 @@
         
         try
         {
-            await Task.Delay(300); // Smooth loading animation
+            await Task.Delay(300);
             rankedRestaurants = (await RestaurantClient.GetRankedAsync(selectedStrategy))?.ToList();
         }
         catch (Exception ex)

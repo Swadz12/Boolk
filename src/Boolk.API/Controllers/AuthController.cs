@@ -17,9 +17,6 @@ public class AuthController : ControllerBase
         _authService = authService;
     }
 
-    /// <summary>
-    /// Login with email and password.
-    /// </summary>
     [HttpPost("login")]
     public async Task<ActionResult<AuthResponse>> Login([FromBody] LoginRequest request)
     {
@@ -31,9 +28,6 @@ public class AuthController : ControllerBase
         return Ok(result);
     }
 
-    /// <summary>
-    /// Register a new user.
-    /// </summary>
     [HttpPost("register")]
     public async Task<ActionResult<AuthResponse>> Register([FromBody] RegisterRequest request)
     {
@@ -45,9 +39,6 @@ public class AuthController : ControllerBase
         return Ok(result);
     }
 
-    /// <summary>
-    /// Get current user info. Requires authentication.
-    /// </summary>
     [HttpGet("me")]
     [Authorize]
     public async Task<ActionResult<UserDto>> GetCurrentUser()

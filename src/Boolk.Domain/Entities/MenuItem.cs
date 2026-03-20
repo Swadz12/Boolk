@@ -1,8 +1,5 @@
 namespace Boolk.Domain.Entities;
 
-/// <summary>
-/// Individual dish/item on the menu with price and nutritional data.
-/// </summary>
 public class MenuItem
 {
     public Guid Id { get; set; }

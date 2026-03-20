@@ -17,9 +17,6 @@ public class ReviewsController : ControllerBase
         _reviewService = reviewService;
     }
 
-    /// <summary>
-    /// Get all reviews.
-    /// </summary>
     [HttpGet]
     public async Task<ActionResult<IEnumerable<ReviewDto>>> GetAll()
     {
@@ -27,9 +24,6 @@ public class ReviewsController : ControllerBase
         return Ok(result);
     }
 
-    /// <summary>
-    /// Get reviews for a specific restaurant.
-    /// </summary>
     [HttpGet("restaurant/{restaurantId:guid}")]
     public async Task<ActionResult<IEnumerable<ReviewDto>>> GetByRestaurant(Guid restaurantId)
     {
@@ -37,9 +31,6 @@ public class ReviewsController : ControllerBase
         return Ok(result);
     }
 
-    /// <summary>
-    /// Get reviews by a specific user.
-    /// </summary>
     [HttpGet("user/{userId:guid}")]
     public async Task<ActionResult<IEnumerable<ReviewDto>>> GetByUser(Guid userId)
     {
@@ -47,9 +38,6 @@ public class ReviewsController : ControllerBase
         return Ok(result);
     }
 
-    /// <summary>
-    /// Get a specific review by ID.
-    /// </summary>
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<ReviewDto>> GetById(Guid id)
     {
@@ -61,9 +49,6 @@ public class ReviewsController : ControllerBase
         return Ok(result);
     }
 
-    /// <summary>
-    /// Create a new review. Requires authentication.
-    /// </summary>
     [HttpPost]
     [Authorize]
     public async Task<ActionResult<ReviewDto>> Create([FromBody] CreateReviewRequest request)
@@ -77,9 +62,6 @@ public class ReviewsController : ControllerBase
         return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
     }
 
-    /// <summary>
-    /// Delete a review. Requires authentication.
-    /// </summary>
     [HttpDelete("{id:guid}")]
     [Authorize]
     public async Task<IActionResult> Delete(Guid id)

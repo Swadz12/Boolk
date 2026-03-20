@@ -16,7 +16,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Boolk.Application\Boolk.Application.csproj" />
-    <ProjectReference Include="..\Boolk.Infrastructure\Boolk.Infrastructure.csproj" />
+
   </ItemGroup>
 
 </Project>

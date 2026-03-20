@@ -5,9 +5,6 @@ using Boolk.Domain.Entities;
 
 namespace Boolk.Infrastructure.Services;
 
-/// <summary>
-/// Implementation of ranking service using Strategy pattern.
-/// </summary>
 public class RankingService : IRankingService
 {
     private readonly IUnitOfWork _unitOfWork;
@@ -17,8 +14,6 @@ public class RankingService : IRankingService
     {
         _unitOfWork = unitOfWork;
         
-        // Initialize strategies
-        // In a more complex setup, these could be injected via DI
         var strategies = new List<IRankingStrategy>
         {
             new BestValueStrategy(),
@@ -33,17 +28,12 @@ public class RankingService : IRankingService
     {
         if (!_strategies.TryGetValue(strategyName, out var strategy))
         {
-            // Fallback to default or empty if strategy not found
-            // For now, let's default to BestValue if unknown, or throw
             strategy = _strategies.First().Value;
         }
 
-        var restaurants = await _unitOfWork.Restaurants.GetAllAsync(0, 1000); // Get all for ranking
-        var reviews = await _unitOfWork.Reviews.GetAllAsync(); // Simplified: fetch all reviews
+        var restaurants = await _unitOfWork.Restaurants.GetAllAsync(0, 1000); 
+        var reviews = await _unitOfWork.Reviews.GetAllAsync(); 
 
-        // Apply strategy
-        // Note: reviews should ideally be fetched per restaurant or in bulk efficiently
-        // For this implementation, we assume we have all necessary data
         
         var rankedRestaurants = strategy.Rank(restaurants.ToList(), reviews.ToList());
         

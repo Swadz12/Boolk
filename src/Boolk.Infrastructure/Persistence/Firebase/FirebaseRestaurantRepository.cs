@@ -5,9 +5,6 @@ using Google.Cloud.Firestore;
 
 namespace Boolk.Infrastructure.Persistence.Firebase;
 
-/// <summary>
-/// Firebase implementation of the restaurant repository.
-/// </summary>
 public class FirebaseRestaurantRepository : IRestaurantRepository
 {
     private readonly FirestoreDb _db;
@@ -45,7 +42,6 @@ public class FirebaseRestaurantRepository : IRestaurantRepository
 
     public async Task<int> GetCountAsync()
     {
-        // Use Firestore native count aggregation (SDK 3.0+)
         var countQuery = await _db.Collection(CollectionName).Count().GetSnapshotAsync();
         return (int)(countQuery.Count ?? 0);
     }
@@ -91,8 +87,6 @@ public class FirebaseRestaurantRepository : IRestaurantRepository
         }
         catch (ArgumentException)
         {
-            // Fallback or log? For now return null or throw? 
-            // If type is invalid, maybe return null?
             return null;
         }
     }
