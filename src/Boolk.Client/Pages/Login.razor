@@ -1,8 +1,8 @@
 @page "/login"
 @namespace Boolk.Client.Pages
-@inject AuthApiClient AuthClient
+@inject LoginViewModel VM
 @inject NavigationManager Nav
-@inject JwtAuthenticationStateProvider AuthStateProvider
+@implements IDisposable
 
 <PageTitle>Login - Boolk</PageTitle>
 
@@ -13,27 +13,27 @@
         </div>
 
         <div class="card-body" style="display: flex; flex-direction: column; gap: 1rem;">
-            <EditForm Model="loginModel" OnValidSubmit="HandleLogin">
+            <EditForm Model="VM" OnValidSubmit="HandleLogin">
                 <DataAnnotationsValidator />
                 <ValidationSummary />
 
                 <div class="form-group" style="margin-bottom: 1rem;">
                     <label style="margin-top: 0.5rem; margin-bottom: 0.5rem; display: block;">Email</label>
-                    <InputText @bind-Value="loginModel.Email" type="email" class="form-control" placeholder="Enter your email" />
+                    <InputText @bind-Value="VM.Email" type="email" class="form-control" placeholder="Enter your email" />
                 </div>
-                
+
                 <div class="form-group" style="margin-bottom: 1rem;">
                     <label style="margin-top: 0.5rem; margin-bottom: 0.5rem; display: block;">Password</label>
-                    <InputText @bind-Value="loginModel.Password" type="password" class="form-control" placeholder="Enter your password" />
+                    <InputText @bind-Value="VM.Password" type="password" class="form-control" placeholder="Enter your password" />
                 </div>
 
-                @if (!string.IsNullOrEmpty(errorMessage))
+                @if (!string.IsNullOrEmpty(VM.ErrorMessage))
                 {
-                    <div class="text-danger">@errorMessage</div>
+                    <div class="text-danger">@VM.ErrorMessage</div>
                 }
 
-                <button class="btn btn-primary" type="submit" disabled="@isSubmitting" style="margin-top: 1rem;">
-                    @(isSubmitting ? "Loading..." : "Login")
+                <button class="btn btn-primary" type="submit" disabled="@VM.IsSubmitting" style="margin-top: 1rem;">
+                    @(VM.IsSubmitting ? "Loading..." : "Login")
                 </button>
             </EditForm>
         </div>
@@ -45,41 +45,12 @@
 </div>
 
 @code {
-    private bool isSubmitting = false;
-    private string errorMessage = "";
-    private LoginModel loginModel = new();
+    protected override void OnInitialized() => VM.OnStateChanged += StateHasChanged;
+    public void Dispose() => VM.OnStateChanged -= StateHasChanged;
 
     private async Task HandleLogin()
     {
-        isSubmitting = true;
-        errorMessage = "";
-        try
-        {
-            var response = await AuthClient.LoginAsync(loginModel.Email, loginModel.Password);
-            
-            if (response?.Success == true)
-            {
-                AuthStateProvider.NotifyAuthenticationStateChanged();
-                Nav.NavigateTo("/profile");
-            }
-            else
-            {
-                errorMessage = response?.Error ?? "Login failed";
-            }
-        }
-        catch (Exception ex)
-        {
-            errorMessage = ex.Message;
-        }
-        finally
-        {
-            isSubmitting = false;
-        }
-    }
-
-    class LoginModel 
-    { 
-        public string Email { get; set; } = ""; 
-        public string Password { get; set; } = ""; 
+        if (await VM.LoginAsync())
+            Nav.NavigateTo("/profile");
     }
 }

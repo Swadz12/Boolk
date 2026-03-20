@@ -1,10 +1,10 @@
 @page "/restaurant/{RestaurantId:guid}"
-@inject RestaurantApiClient RestaurantClient
-@inject ReviewApiClient ReviewClient
+@inject RestaurantDetailViewModel VM
+@implements IDisposable
 
 <PageTitle>Restaurant Details - Boolk</PageTitle>
 
-@if (restaurant == null && !isLoading)
+@if (VM.Restaurant == null && !VM.IsLoading)
 {
     <div class="container mt-5">
         <div class="card">
@@ -19,7 +19,7 @@
         </div>
     </div>
 }
-else if (isLoading)
+else if (VM.IsLoading)
 {
     <div class="container mt-5">
         <div class="card">
@@ -30,12 +30,12 @@ else if (isLoading)
         </div>
     </div>
 }
-else if (restaurant != null)
+else if (VM.Restaurant != null)
 {
     <div class="hero" style="padding: 2rem;">
         <div class="hero-content">
-            <h1 style="font-size: 2.5rem;">@restaurant.Name</h1>
-            <p>📍 @restaurant.City</p>
+            <h1 style="font-size: 2.5rem;">@VM.Restaurant.Name</h1>
+            <p>📍 @VM.Restaurant.City</p>
         </div>
     </div>
 
@@ -48,19 +48,19 @@ else if (restaurant != null)
                 <div style="padding: 1rem;">
                     <div style="margin-bottom: 1.5rem;">
                         <div style="font-size: 3rem; text-align: center; margin-bottom: 1rem;">
-                            @restaurant.DisplayIcon
+                            @VM.Restaurant.DisplayIcon
                         </div>
                         <div style="text-align: center;">
-                            <span class="restaurant-type">@restaurant.DisplayIcon @restaurant.DisplayName</span>
+                            <span class="restaurant-type">@VM.Restaurant.DisplayIcon @VM.Restaurant.DisplayName</span>
                         </div>
                     </div>
                     <div style="padding: 1rem; background: var(--glass-bg); border-radius: 12px; margin-bottom: 1rem;">
                         <div style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 0.5rem;">Restaurant ID</div>
-                        <div style="font-family: monospace; font-size: 0.85rem;">@restaurant.Id</div>
+                        <div style="font-family: monospace; font-size: 0.85rem;">@VM.Restaurant.Id</div>
                     </div>
                     <div style="padding: 1rem; background: var(--glass-bg); border-radius: 12px;">
                         <div style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 0.5rem;">Location</div>
-                        <div style="font-weight: 600;">📍 @restaurant.City</div>
+                        <div style="font-weight: 600;">📍 @VM.Restaurant.City</div>
                     </div>
                 </div>
             </div>
@@ -71,23 +71,23 @@ else if (restaurant != null)
                 </div>
                 <div style="padding: 1rem;">
                     <div class="stats-card" style="background: transparent; border: none; padding: 0; margin-bottom: 1.5rem;">
-                        <div class="stats-number">@reviewCount</div>
+                        <div class="stats-number">@VM.ReviewCount</div>
                         <div class="stats-label">Total Reviews</div>
                     </div>
-                    @if (reviewCount > 0)
+                    @if (VM.ReviewCount > 0)
                     {
                         <div class="stats-card" style="background: transparent; border: none; padding: 0; margin-bottom: 1.5rem;">
-                            <div class="stats-number" style="font-size: 1.5rem;">€@averagePrice.ToString("F2")</div>
+                            <div class="stats-number" style="font-size: 1.5rem;">€@VM.AveragePrice.ToString("F2")</div>
                             <div class="stats-label">Average Price</div>
                         </div>
                         <div class="stats-card" style="background: transparent; border: none; padding: 0;">
                             <div class="stats-number" style="font-size: 1.5rem;">
-                                @for (int i = 0; i < (int)Math.Round(averageSatiety); i++)
+                                @for (int i = 0; i < (int)Math.Round(VM.AverageSatiety); i++)
                                 {
                                     <span class="star">⭐</span>
                                 }
                             </div>
-                            <div class="stats-label">Average Satiety (@averageSatiety.ToString("F1")/10)</div>
+                            <div class="stats-label">Average Satiety (@VM.AverageSatiety.ToString("F1")/10)</div>
                         </div>
                     }
                     else
@@ -100,17 +100,17 @@ else if (restaurant != null)
             </div>
         </div>
 
-        @if (reviews != null && reviews.Any())
+        @if (VM.Reviews != null && VM.Reviews.Any())
         {
             <div class="card fade-in" style="margin-top: 2rem;animation-delay: 0.2s">
                 <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
-                    <h2 class="card-title">💬 Reviews (@reviewCount)</h2>
+                    <h2 class="card-title">💬 Reviews (@VM.ReviewCount)</h2>
                     <a href="/reviews" class="btn btn-secondary" style="padding: 0.5rem 1rem; font-size: 0.85rem;">
                         ➕ Add Review
                     </a>
                 </div>
                 <div style="padding: 1rem;">
-                    @foreach (var review in reviews.OrderByDescending(r => r.Price))
+                    @foreach (var review in VM.Reviews.OrderByDescending(r => r.Price))
                     {
                         <div @key="review.Id" class="review-card fade-in">
                             <div class="review-header">
@@ -162,53 +162,16 @@ else if (restaurant != null)
     [Parameter]
     public Guid RestaurantId { get; set; }
 
-    private RestaurantDto? restaurant;
-    private List<ReviewDto>? reviews;
-    private bool isLoading = true;
-    private int reviewCount = 0;
-    private double averagePrice = 0;
-    private decimal averageSatiety = 0;
+    protected override void OnInitialized() => VM.OnStateChanged += StateHasChanged;
+    public void Dispose() => VM.OnStateChanged -= StateHasChanged;
 
     protected override async Task OnInitializedAsync()
     {
-        await LoadRestaurant();
+        await VM.LoadAsync(RestaurantId);
     }
 
     protected override async Task OnParametersSetAsync()
     {
-        await LoadRestaurant();
-    }
-
-    private async Task LoadRestaurant()
-    {
-        isLoading = true;
-        StateHasChanged();
-
-        try
-        {
-            await Task.Delay(300);
-            
-            restaurant = await RestaurantClient.GetByIdAsync(RestaurantId);
-            
-            if (restaurant != null)
-            {
-                reviews = (await ReviewClient.GetByRestaurantAsync(RestaurantId))?.ToList();
-                reviewCount = reviews?.Count ?? 0;
-                
-                if (reviews != null && reviews.Any())
-                {
-                    averagePrice = reviews.Average(r => r.Price);
-                    averageSatiety = reviews.Average(r => (decimal)r.SatietyLevel);
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error loading restaurant: {ex.Message}");
-        }
-        finally
-        {
-            isLoading = false;
-        }
+        await VM.LoadAsync(RestaurantId);
     }
 }
